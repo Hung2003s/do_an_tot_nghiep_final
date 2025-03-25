@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "691881174084",
+    "project_id": "animal-app-hung",
+    "storage_bucket": "animal-app-hung.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691881174084:android:8e4d827a41af097cefc811",
+        "android_client_info": {
+          "package_name": "com.example.animal_2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDokNHhIR2z-FoK43sJgdEhAUf-mqgR6K0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
