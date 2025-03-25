@@ -79,7 +79,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
           return Container(
             margin: const EdgeInsets.only(top: 30),
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.7), borderRadius: BorderRadius.circular(20)),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.7), borderRadius: BorderRadius.circular(20)),
             child: Column(
               children: [
                 Text(
