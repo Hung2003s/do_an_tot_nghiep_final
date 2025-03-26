@@ -52,7 +52,7 @@ dependencies:
   timelines_plus: ^1.0.6
   duration_button: ^1.0.0
   webview_flutter: ^4.10.0
-  arcore_flutter_plugin: ^0.1.0
+#  arcore_flutter_plugin: ^0.1.0
 #  timeline: ^0.0.1
 #  native_ar_viewer: ^0.0.2
 
