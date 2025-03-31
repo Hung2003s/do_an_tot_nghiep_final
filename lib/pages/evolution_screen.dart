@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../const/ar_image.dart';
@@ -90,8 +89,9 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                 const SizedBox(height: 20),
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  child: CachedImage(
-                    imageUrl: _evoDataList[index]["image"],
+                  child: Image.asset(
+                    // imageUrl:
+                    _evoDataList[index]["image"],
                     fit: BoxFit.contain,
                   ),
                 ),

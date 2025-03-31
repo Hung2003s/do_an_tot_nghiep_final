@@ -1,4 +1,4 @@
-// ignore_for_file: unused_local_variable, avoid_print, unrelated_type_equality_checks, prefer_typing_uninitialized_variables
+// ignore_for_file: unused_local_variable, avoid_print, unrelated_type_equality_checks, prefer_typing_uninitialized_variables;
 
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -129,7 +129,11 @@ class _HomeMainState extends State<HomeMain> {
           var indexRandom = random.nextInt(ColorRamdom.animalColor.length);
           String idname = records["idName"];
           int iD = records["id"];
-          return (idname == idName && iD == widget.id)
+          return (
+              idname == idName
+          // &&
+              // iD == widget.id
+          )
               ? InkWell(
             onTap: () {
               Get.to(
@@ -226,7 +230,10 @@ class _HomeMainState extends State<HomeMain> {
                           alignment: Alignment.topCenter,
                           child: SizedBox(
                             height: 100,
-                            child: CachedImage(imageUrl: records["imageUrl"]),
+                            child: Image.asset(
+                                // imageUrl:
+                                records["imageUrl"]
+                            ),
                           )),
                     ],
                   )

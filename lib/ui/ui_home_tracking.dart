@@ -221,9 +221,9 @@ class _TrackingImangeState extends State<TrackingImange> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () {
-                //  launch(_trackingImageList[index]['URL']);
+                 launch(_trackingImageList[index]['url']);
                 Get.to(
-                  () => Image3D(urls: _trackingImageList[index]['URL']),
+                  () => Image3D(urls: _trackingImageList[index]['url']),
                   curve: Curves.linear,
                   transition: Transition.rightToLeft,
                 );
@@ -259,8 +259,9 @@ class _TrackingImangeState extends State<TrackingImange> {
                             bottomLeft: Radius.circular(5),
                             bottomRight: Radius.circular(5),
                           ),
-                          child: CachedImage(
-                            imageUrl: _trackingImageList[index]["image"],
+                          child: Image.asset(
+                            // imageUrl:
+                            _trackingImageList[index]["image"],
                             fit: BoxFit.fill,
                           ),
                         ),

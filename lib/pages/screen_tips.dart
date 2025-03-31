@@ -132,9 +132,9 @@ class _ScreenTipsState extends State<ScreenTips> {
                   children: [
                     Expanded(
                       flex: 1,
-                      child: CachedImage(
-                        imageUrl: _tipsDataList[index]["imageUrl"],
-                        fit: BoxFit.fill,
+                      child: Image.asset(
+                        _tipsDataList[index]["imageUrl"],
+                        fit: BoxFit.cover,
                       ),
                     ),
                     const SizedBox(width: 12),

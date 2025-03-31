@@ -4,6 +4,8 @@ import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:native_ar_viewer/native_ar_viewer.dart';
+
+// import 'package:native_ar_viewer/native_ar_viewer.dart';
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
 import '../const/cache/ar_cache_image.dart';
@@ -27,12 +29,9 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
 
   _launchAR(String model3DUrl) async {
     // if (io.Platform.isAndroid) {
-    //   await ArFlutterPlugin.platformVersion;
-    //   //launchAR(model3DUrl);
+    //   await NativeArViewer.launchAR(model3DUrl);
     // } else {
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(const SnackBar(content: Text('Platform not supported')));
+    //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Platform not supported')));
     // }
   }
 
@@ -44,7 +43,7 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white, size: 35),
+        iconTheme: const IconThemeData(color: Colors.black, size: 35),
       ),
       extendBodyBehindAppBar: true,
       body: Stack(
@@ -107,10 +106,10 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
     var arguments,
     var plkh,
   ) {
-    String gioi = plkh["Giới"];
-    String bo = plkh["Bộ"];
-    String lop = plkh["Lớp"];
-    String nganh = plkh["Ngành"];
+    String gioi = plkh["gioi"];
+    String bo = plkh["bo"];
+    String lop = plkh["lop"];
+    String nganh = plkh["nganh"];
 
     return SingleChildScrollView(
       child: Container(
@@ -264,9 +263,10 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
           child: SizedBox(
             width: 250,
             height: 250,
-            child: CachedImage(
-              imageUrl: arguments["imageUrl"],
-              fit: BoxFit.cover,
+            child: Image.asset(
+              // imageUrl:
+              arguments["imageUrl"],
+              fit: BoxFit.fill,
             ),
           ),
         ),
