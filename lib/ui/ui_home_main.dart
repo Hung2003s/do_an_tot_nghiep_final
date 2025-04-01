@@ -163,7 +163,7 @@ class _HomeMainState extends State<HomeMain> {
                       Padding(
                           padding: const EdgeInsets.only(top: 90),
                           child: Container(
-                            height: 115,
+                            height: 150,
                             decoration: BoxDecoration(
                                 borderRadius: const BorderRadius.only(
                                   bottomLeft: Radius.circular(15),
