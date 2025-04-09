@@ -221,7 +221,7 @@ class _TrackingImangeState extends State<TrackingImange> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () {
-                 launch(_trackingImageList[index]['url']);
+                 //launch(_trackingImageList[index]['url']);
                 Get.to(
                   () => Image3D(urls: _trackingImageList[index]['url']),
                   curve: Curves.linear,

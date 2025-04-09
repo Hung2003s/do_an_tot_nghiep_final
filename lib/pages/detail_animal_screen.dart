@@ -4,7 +4,7 @@ import 'dart:io' as io;
 import 'package:animal_2/ui/show_image_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:native_ar_viewer/native_ar_viewer.dart';
+import 'package:native_ar_viewer/native_ar_viewer.dart';
 
 // import 'package:native_ar_viewer/native_ar_viewer.dart';
 import '../const/ar_color.dart';
@@ -29,17 +29,16 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
   var plkh;
 
   _launchAR(String model3DUrl) async {
-    // if (io.Platform.isAndroid) {
-    //   await NativeArViewer.launchAR(model3DUrl);
-    // } else {
-    //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Platform not supported')));
-    // }
+    if (io.Platform.isAndroid) {
+      await NativeArViewer.launchAR(model3DUrl);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Platform not supported')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     plkh = widget.arguments["plkh"];
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,

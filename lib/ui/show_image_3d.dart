@@ -33,41 +33,41 @@ class _ShowImage3DScreenState extends State<ShowImage3DScreen> {
     );
   }
 
-  // Future<String?> showPickerDialog(List<String> inputList, [String? chosenItem]) async {
-  //   return await showModalBottomSheet<String>(
-  //       context: context,
-  //       builder: (ctx) {
-  //         return SizedBox(
-  //           height: 250,
-  //           child: ListView.separated(
-  //             itemCount: inputList.length,
-  //             padding: const EdgeInsets.only(top: 16),
-  //             itemBuilder: (ctx, index) {
-  //               return InkWell(
-  //                 onTap: () {
-  //                   Navigator.pop(context, inputList[index]);
-  //                 },
-  //                 child: Container(
-  //                   height: 50,
-  //                   padding: const EdgeInsets.all(16),
-  //                   child: Row(
-  //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                     children: [Text('${index + 1}'), Text(inputList[index]), Icon(chosenItem == inputList[index] ? Icons.check_box : Icons.check_box_outline_blank)],
-  //                   ),
-  //                 ),
-  //               );
-  //             },
-  //             separatorBuilder: (ctx, index) {
-  //               return const Divider(
-  //                 color: Colors.grey,
-  //                 thickness: 0.6,
-  //                 indent: 10,
-  //                 endIndent: 10,
-  //               );
-  //             },
-  //           ),
-  //         );
-  //       });
-  // }
+  Future<String?> showPickerDialog(List<String> inputList, [String? chosenItem]) async {
+    return await showModalBottomSheet<String>(
+        context: context,
+        builder: (ctx) {
+          return SizedBox(
+            height: 250,
+            child: ListView.separated(
+              itemCount: inputList.length,
+              padding: const EdgeInsets.only(top: 16),
+              itemBuilder: (ctx, index) {
+                return InkWell(
+                  onTap: () {
+                    Navigator.pop(context, inputList[index]);
+                  },
+                  child: Container(
+                    height: 50,
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [Text('${index + 1}'), Text(inputList[index]), Icon(chosenItem == inputList[index] ? Icons.check_box : Icons.check_box_outline_blank)],
+                    ),
+                  ),
+                );
+              },
+              separatorBuilder: (ctx, index) {
+                return const Divider(
+                  color: Colors.grey,
+                  thickness: 0.6,
+                  indent: 10,
+                  endIndent: 10,
+                );
+              },
+            ),
+          );
+        });
+  }
 }
 

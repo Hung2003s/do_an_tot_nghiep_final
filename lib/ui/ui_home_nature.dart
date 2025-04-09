@@ -1,3 +1,4 @@
+import 'package:animal_2/ui/login_screen/login_screen.dart';
 import 'package:animal_2/ui/ui_home_main.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -63,6 +64,24 @@ class _HomeNatureState extends State<HomeNature> {
             // List of items in drawer
             ListTile(
               leading: const Icon(
+                Icons.login,
+                size: 30,
+                color: OneColors.black,
+              ),
+              title: Text(
+                'Đăng nhập',
+                style: GoogleFonts.aBeeZee(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              onTap: () {
+                Get.to(() => const LoginScreen(), curve: Curves.linear, transition: Transition.rightToLeft);
+              },
+            ),
+            ListTile(
+              leading: const Icon(
                 Icons.home,
                 size: 30,
                 color: OneColors.black,
@@ -115,6 +134,7 @@ class _HomeNatureState extends State<HomeNature> {
                 Get.to(() => const ScreenKnown(), curve: Curves.linear, transition: Transition.rightToLeft);
               },
             ),
+
           ],
         ),
       ),

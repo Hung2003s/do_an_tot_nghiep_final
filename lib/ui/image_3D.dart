@@ -44,27 +44,55 @@ class _Image3DState extends State<Image3D> {
       // appBar: AppBar(
       //   title: const Text("InAppWebView test"),
       // ),
-        body: Stack(children: <Widget>[
-          SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: InAppWebView(
-                key: webViewKey,
-                initialUrlRequest: URLRequest(url: WebUri.uri(Uri.parse(widget.urls))),
-                initialOptions: InAppWebViewGroupOptions(
-                  crossPlatform: InAppWebViewOptions(
+      body: SingleChildScrollView(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          child: Stack(
+            children: <Widget>[
+              SizedBox(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+                child: InAppWebView(
+                  key: webViewKey,
+                  initialUrlRequest: URLRequest(
+                    url: WebUri.uri(Uri.parse(widget.urls)),
+                  ),
+                  initialSettings: InAppWebViewSettings(
                     mediaPlaybackRequiresUserGesture: false,
                   ),
+                  onWebViewCreated: (controller) {
+                    webViewController = controller;
+                  },
+                  onPermissionRequest: (controller, request) async {
+                    final Uri? origin = request.origin;
+                    // Nhận danh sách quyền trực tiếp từ request, kiểu của nó là List<PermissionResourceType>
+                    final List<PermissionResourceType> resources =
+                        request.resources;
+
+                    print(
+                      "[InAppWebView] Permission request: origin ${origin?.toString()}, resources (enums): $resources",
+                    );
+
+                    // --- Logic xử lý quyền ---
+                    // Ví dụ: Luôn cấp phép, sử dụng trực tiếp danh sách enum từ request
+                    print(
+                      "[InAppWebView] Granting permissions (enums): $resources for ${origin?.toString()}",
+                    );
+
+                    return PermissionResponse(
+                      resources: resources,
+                      action: PermissionResponseAction.GRANT,
+                    );
+                  },
                 ),
-                onWebViewCreated: (controller) {
-                  webViewController = controller;
-                },
-                androidOnPermissionRequest: (InAppWebViewController controller, String origin, List<String> resources) async {
-                  return PermissionRequestResponse(resources: resources, action: PermissionRequestResponseAction.GRANT);
-                }),
+              ),
+              _delay ? _buildHuongDan() : Container(),
+            ],
           ),
-          _delay ? _buildHuongDan() : Container()
-        ]));
+        ),
+      ),
+    );
   }
 
   SizedBox _buildHuongDan() {
@@ -74,16 +102,24 @@ class _Image3DState extends State<Image3D> {
       child: IgnorePointer(
         child: Column(
           children: [
-            //const SizedBox(height: 70),
+            const SizedBox(height: 70),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha:1),
-                image: const DecorationImage(image: AssetImage(OneImages.ar_background), fit: BoxFit.cover),
-                //borderRadius: BorderRadius.circular(20),
+                color: Colors.white.withValues(alpha: 1),
+                image: const DecorationImage(
+                  image: AssetImage(OneImages.ar_background),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: BorderRadius.circular(20),
               ),
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.only(top: 110, bottom: 10, left: 10, right: 10),
+              padding: const EdgeInsets.only(
+                top: 110,
+                bottom: 10,
+                left: 10,
+                right: 10,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -97,7 +133,12 @@ class _Image3DState extends State<Image3D> {
                   ),
                   const SizedBox(height: 20),
                   Padding(
-                    padding: const EdgeInsets.only(top: 30, left: 10, right: 10, bottom: 10),
+                    padding: const EdgeInsets.only(
+                      top: 30,
+                      left: 10,
+                      right: 10,
+                      bottom: 10,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -106,12 +147,13 @@ class _Image3DState extends State<Image3D> {
                           child: Column(
                             children: [
                               SizedBox(
-                                  height: 70,
-                                  width: 70,
-                                  child: Image.asset(
-                                    'assets/images/ex1.png',
-                                    fit: BoxFit.cover,
-                                  )),
+                                height: 70,
+                                width: 70,
+                                child: Image.asset(
+                                  'assets/images/ex1.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                               const SizedBox(height: 20),
                               Text(
                                 'Chọn động vật bạn muốn quét',
@@ -121,7 +163,7 @@ class _Image3DState extends State<Image3D> {
                                   color: Colors.black,
                                 ),
                                 textAlign: TextAlign.center,
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -138,12 +180,13 @@ class _Image3DState extends State<Image3D> {
                           child: Column(
                             children: [
                               SizedBox(
-                                  height: 70,
-                                  width: 70,
-                                  child: Image.asset(
-                                    'assets/images/ex2.png',
-                                    fit: BoxFit.cover,
-                                  )),
+                                height: 70,
+                                width: 70,
+                                child: Image.asset(
+                                  'assets/images/ex2.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                               const SizedBox(height: 20),
                               Text(
                                 'Quét vào hình ảnh cố định của nó',
@@ -153,7 +196,7 @@ class _Image3DState extends State<Image3D> {
                                   color: Colors.black,
                                 ),
                                 textAlign: TextAlign.center,
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -170,12 +213,13 @@ class _Image3DState extends State<Image3D> {
                           child: Column(
                             children: [
                               SizedBox(
-                                  height: 70,
-                                  width: 70,
-                                  child: Image.asset(
-                                    'assets/images/ex3.png',
-                                    fit: BoxFit.cover,
-                                  )),
+                                height: 70,
+                                width: 70,
+                                child: Image.asset(
+                                  'assets/images/ex3.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                               const SizedBox(height: 20),
                               Text(
                                 'Giữ cố định máy để hiện ảnh 3D',
@@ -185,10 +229,10 @@ class _Image3DState extends State<Image3D> {
                                   color: Colors.black,
                                 ),
                                 textAlign: TextAlign.center,
-                              )
+                              ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),

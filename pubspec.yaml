@@ -54,7 +54,7 @@ dependencies:
   webview_flutter: ^4.10.0
 #  arcore_flutter_plugin: ^0.1.0
 #  timeline: ^0.0.1
-#  native_ar_viewer: ^0.0.2
+  native_ar_viewer: ^0.0.2
 
 dev_dependencies:
   flutter_test:
