@@ -41,13 +41,9 @@ class _Image3DState extends State<Image3D> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text("InAppWebView test"),
-      // ),
+
       body: SingleChildScrollView(
         child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
           child: Stack(
             children: <Widget>[
               SizedBox(
@@ -69,17 +65,14 @@ class _Image3DState extends State<Image3D> {
                     // Nhận danh sách quyền trực tiếp từ request, kiểu của nó là List<PermissionResourceType>
                     final List<PermissionResourceType> resources =
                         request.resources;
-
+        
                     print(
                       "[InAppWebView] Permission request: origin ${origin?.toString()}, resources (enums): $resources",
                     );
-
-                    // --- Logic xử lý quyền ---
-                    // Ví dụ: Luôn cấp phép, sử dụng trực tiếp danh sách enum từ request
                     print(
                       "[InAppWebView] Granting permissions (enums): $resources for ${origin?.toString()}",
                     );
-
+        
                     return PermissionResponse(
                       resources: resources,
                       action: PermissionResponseAction.GRANT,
@@ -97,12 +90,10 @@ class _Image3DState extends State<Image3D> {
 
   SizedBox _buildHuongDan() {
     return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
       child: IgnorePointer(
         child: Column(
           children: [
-            const SizedBox(height: 70),
+            // const SizedBox(height: 70),
             Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 1),

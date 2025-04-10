@@ -71,7 +71,7 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
               MaterialPageRoute(
                 builder: (context) {
                   // do something
-                  return ShowImage3DScreen(image3d: arguments["3Dimage"]);
+                  return ShowImage3DScreen(image3d: arguments["3Dimage"],);
                 },
               ),
             );
