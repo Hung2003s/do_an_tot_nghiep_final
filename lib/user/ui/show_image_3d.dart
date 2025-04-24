@@ -95,10 +95,10 @@ class _ShowImage3DScreenState extends State<ShowImage3DScreen> {
           ),
           IconButton(
             onPressed: () {
-              controller.setCameraOrbit(20, 20, 5);
+              controller.setCameraOrbit(10, 90, 0);
               //controller.setCameraTarget(0.3, 0.2, 0.4);
             },
-            icon: const Icon(Icons.camera_alt_outlined, color: Colors.white,),
+            icon: const Icon(Icons.zoom_in, color: Colors.white,),
           ),
           const SizedBox(
             height: 4,
@@ -115,6 +115,12 @@ class _ShowImage3DScreenState extends State<ShowImage3DScreen> {
           ),
         ],
       ),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white, size: 35),
+      ),
+      extendBodyBehindAppBar: true,
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,

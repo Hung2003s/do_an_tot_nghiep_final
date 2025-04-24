@@ -3,11 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
-import '../const/cache/ar_cache_image.dart';
+//import '../const/cache/ar_cache_image.dart';
 import '../fireBase/fireBase_help.dart';
 import 'image_3D.dart';
 
@@ -209,92 +207,101 @@ class _TrackingImangeState extends State<TrackingImange> {
     return SliverToBoxAdapter(
       child: Container(
         padding: const EdgeInsets.only(bottom: 10, left: 10, right: 10),
-        height: MediaQuery.of(context).size.height * 1.2,
+        // height: MediaQuery.of(context).size.height * 1.2,
         child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
+          physics:  NeverScrollableScrollPhysics(),
           itemCount: _trackingImageList.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // số cột trong lưới
             mainAxisSpacing: 20, // khoảng cách giữa các hàng
             crossAxisSpacing: 20, // khoảng cách giữa các cột
           ),
           itemBuilder: (context, index) {
-            return InkWell(
-              onTap: () {
-                 launch(_trackingImageList[index]['url']);
-                // Get.to(
-                //   () => Image3D(urls: _trackingImageList[index]['url']),
-                //   curve: Curves.linear,
-                //   transition: Transition.rightToLeft,
-                // );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: OneColors.white,
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(25),
-                    bottomLeft: Radius.circular(25),
+            return IntrinsicHeight(
+              child: InkWell(
+                onTap: () {
+                  //launch(_trackingImageList[index]['url']);
+                  Get.to(
+                    () => Image3D(urls: _trackingImageList[index]['url']),
+                    curve: Curves.linear,
+                    transition: Transition.rightToLeft,
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: OneColors.white,
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(25),
+                      bottomLeft: Radius.circular(25),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        offset: const Offset(0, 1),
+                        color: OneColors.textGreyDark.withValues(alpha:0.3),
+                        blurRadius: 5,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      offset: const Offset(0, 1),
-                      color: OneColors.textGreyDark.withValues(alpha:0.3),
-                      blurRadius: 5,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(5),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: SizedBox(
-                        height: 120,
-                        width: 200,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topRight: Radius.circular(25),
-                            bottomLeft: Radius.circular(5),
-                            bottomRight: Radius.circular(5),
-                          ),
-                          child: Image.asset(
-                            // imageUrl:
-                            _trackingImageList[index]["image"],
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 190, 190, 190),
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(5),
-                          bottomLeft: Radius.circular(25),
-                          topLeft: Radius.circular(5),
-                          // bottomRight: Radius.circular(5),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 5, bottom: 5),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _trackingImageList[index]["name"],
-                              style: GoogleFonts.aBeeZee(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                  padding: const EdgeInsets.all(3),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: SizedBox(
+                            height: double.infinity,
+                            width: 200,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(25),
+                                bottomLeft: Radius.circular(5),
+                                bottomRight: Radius.circular(5),
+                              ),
+                              child: Image.asset(
+                                // imageUrl:
+                                _trackingImageList[index]["image"],
+                                fit: BoxFit.contain,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                        decoration: const BoxDecoration(
+                          color: Color.fromARGB(255, 190, 190, 190),
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(5),
+                            bottomLeft: Radius.circular(25),
+                            topLeft: Radius.circular(5),
+                            // bottomRight: Radius.circular(5),
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.only(top: 5, bottom: 0, left: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _trackingImageList[index]["name"],
+                                  style: GoogleFonts.aBeeZee(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

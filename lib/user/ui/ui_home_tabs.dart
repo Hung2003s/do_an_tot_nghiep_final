@@ -1,4 +1,5 @@
-import 'package:animal_2/ui/ui_home_tracking.dart';
+
+import 'package:animal_2/user/ui/ui_home_tracking.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';

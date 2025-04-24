@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
 import '../const/ar_list_color.dart';
-import '../const/cache/ar_cache_image.dart';
+//import '../const/cache/ar_cache_image.dart';
 import '../fireBase/fireBase_help.dart';
 
 class ScreenTips extends StatefulWidget {

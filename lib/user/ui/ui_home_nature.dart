@@ -1,5 +1,5 @@
-import 'package:animal_2/ui/login_screen/login_screen.dart';
-import 'package:animal_2/ui/ui_home_main.dart';
+
+import 'package:animal_2/user/ui/ui_home_main.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +10,7 @@ import '../const/ar_image.dart';
 import '../pages/evolution_screen.dart';
 import '../pages/screen_tips.dart';
 import '../pages/screen_two.dart';
+import 'login_screen/login_screen.dart';
 import 'ui_home_tracking.dart';
 
 class HomeNature extends StatefulWidget {

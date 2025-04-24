@@ -1,5 +1,6 @@
 
-import 'package:animal_2/splash/splash_animal.dart';
+
+import 'package:animal_2/user/splash/splash_animal.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Animal App',
       home: SplashScreen(),
     );
   }

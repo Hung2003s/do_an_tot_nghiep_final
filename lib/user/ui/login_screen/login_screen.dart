@@ -1,7 +1,5 @@
-import 'package:animal_2/const/ar_color.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import '../../../admin/home_dashboard/dashboard_homepage.dart';
 import '../../const/ar_image.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -161,7 +159,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_)=> AdminDashboard()));
+                      // Get
+                    },
                     child: Text('Quên mật khẩu', style: TextStyle(
 
                     )),
@@ -174,7 +175,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+
+                    },
                     child: Text('Đăng ký', style: TextStyle(
                     )),
                   ),
