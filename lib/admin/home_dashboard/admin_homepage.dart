@@ -1,11 +1,9 @@
-import 'dart:math';
+
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-import '../../user/const/ar_list_color.dart';
 
 class ChartData {
   ChartData(this.x, this.y);
@@ -16,16 +14,18 @@ class ChartData {
 
 class AdminHomepage extends StatefulWidget {
   final arguments;
-  const AdminHomepage({super.key,
-    this.arguments});
+
+  const AdminHomepage({super.key, this.arguments});
 
   @override
   State<AdminHomepage> createState() => _AdminHomepageState();
 }
 
 class _AdminHomepageState extends State<AdminHomepage> {
-  final CollectionReference data = FirebaseFirestore.instance.collection("animalDB");
-  VoidCallback? onDelete ; // Callback khi nút Xóa được bấm
+  final CollectionReference data = FirebaseFirestore.instance.collection(
+    "animalDB",
+  );
+  VoidCallback? onDelete; // Callback khi nút Xóa được bấm
   VoidCallback? onCancelOrDone; // Callback khi nút Hủy/Done được bấm
   final bool isDoneState = false;
 
@@ -45,6 +45,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
     // TODO: implement initState
     super.initState();
   }
+
   void _showMyModalBottomSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -54,23 +55,46 @@ class _AdminHomepageState extends State<AdminHomepage> {
         return Container(
           height: 600,
           decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10))
-          ),
-          child: Center(
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    itemCount: 6,
-                    itemBuilder: (context, index) {
-                      return _buildBottomSheetItem();
-                    },
-                  ),
-                ),
-              ],
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
             ),
+          ),
+          child: StreamBuilder(
+            stream: data.snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {}
+              if (snapshot.hasData) {
+                return Center(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: snapshot.data?.docs.length,
+                          itemBuilder: (context, index) {
+                            final DocumentSnapshot records =
+                                snapshot.data!.docs[index];
+                            return _buildBottomSheetItem(
+                              records["idName"],
+                              records["nameAnimal"],
+                              records["imageUrl"],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return Container();
+            },
           ),
         );
       },
@@ -88,18 +112,21 @@ class _AdminHomepageState extends State<AdminHomepage> {
               _buildHeader(),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 16.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Statistics Section
                       _buildStatisticsSection(),
                       SizedBox(height: 20),
-        
+
                       // Graph Section
                       _buildGraphSection(),
                       SizedBox(height: 20),
-        
+
                       // Favorites Section
                       _buildFavoritesSection(),
                       SizedBox(height: 20),
@@ -108,7 +135,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
                       SizedBox(height: 20),
 
                       // Popular Models Section
-                      _buildPopularModelsSection(context,"trencan"),
+                      _buildPopularModelsSection(context, "trencan"),
                       SizedBox(height: 20),
                     ],
                   ),
@@ -120,6 +147,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
       ),
     );
   }
+
   Widget _buildHeader() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -378,17 +406,21 @@ class _AdminHomepageState extends State<AdminHomepage> {
       ),
     );
   }
-  Widget _buildBottomSheetItem() {
+
+  Widget _buildBottomSheetItem(String type, String name, String image) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4), // Khoảng cách giữa các item dọc
-      elevation: 2.0, // Độ nổi của card
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
+      // Khoảng cách giữa các item dọc
+      elevation: 2.0,
+      // Độ nổi của card
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0), // Bo tròn góc card
       ),
       child: Padding(
         padding: const EdgeInsets.all(12.0), // Padding bên trong card
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start, // Căn chỉnh các mục con theo chiều dọc lên trên
+          crossAxisAlignment: CrossAxisAlignment.start,
+          // Căn chỉnh các mục con theo chiều dọc lên trên
           children: [
             // Placeholder Ảnh/Biểu tượng
             Container(
@@ -396,27 +428,37 @@ class _AdminHomepageState extends State<AdminHomepage> {
               height: 80, // Chiều cao placeholder
               decoration: BoxDecoration(
                 color: Colors.grey[300], // Màu nền placeholder
-                borderRadius: BorderRadius.circular(8.0), // Bo tròn góc placeholder
+                borderRadius: BorderRadius.circular(
+                  8.0,
+                ), // Bo tròn góc placeholder
               ),
-              // TODO: Thêm Image.asset hoặc Image.network nếu có ảnh thật
+              child: Image.asset(image),
             ),
-            SizedBox(width: 16.0), // Khoảng cách giữa ảnh và nội dung text/button
+            SizedBox(width: 16.0),
+            // Khoảng cách giữa ảnh và nội dung text/button
             // Phần Nội dung Text và Buttons
-            Expanded( // Sử dụng Expanded để phần này chiếm hết không gian còn lại
+            Expanded(
+              // Sử dụng Expanded để phần này chiếm hết không gian còn lại
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Căn chỉnh nội dung bên trái
+                crossAxisAlignment: CrossAxisAlignment.start,
+                // Căn chỉnh nội dung bên trái
                 children: [
                   // Category
                   Text(
-                    'Động vật ăn thịt',
-                    style: TextStyle(fontSize: 12.0, color: Colors.redAccent), // Màu đỏ nhạt như hình
+                    type,
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.redAccent,
+                    ), // Màu đỏ nhạt như hình
                   ),
                   SizedBox(height: 4.0),
-
                   // Name
                   Text(
-                    'Sư Tử',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    name,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 4.0),
 
@@ -429,53 +471,88 @@ class _AdminHomepageState extends State<AdminHomepage> {
 
                   // Price và Buttons (trong một Row)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Đẩy Price sang trái, Buttons sang phải
-                    crossAxisAlignment: CrossAxisAlignment.end, // Căn chỉnh các mục con theo chiều dọc xuống dưới
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Đẩy Price sang trái, Buttons sang phải
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    // Căn chỉnh các mục con theo chiều dọc xuống dưới
                     children: [
                       // Price
                       Text(
-                        'VNĐ ${'200.000'}', // Định dạng giá (ví dụ không lấy phần thập phân)
-                        style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                        'VNĐ ${'200.000'}',
+                        // Định dạng giá (ví dụ không lấy phần thập phân)
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       // Buttons
                       Row(
                         children: [
                           // Nút 1 (Xóa hoặc Done)
                           Container(
-                            decoration: BoxDecoration(
-                            ),
+                            decoration: BoxDecoration(),
                             child: ElevatedButton(
-                              onPressed: isDoneState ? onCancelOrDone : onDelete, // Gán callback tương ứng với trạng thái
+                              onPressed:
+                                  isDoneState ? onCancelOrDone : onDelete,
+                              // Gán callback tương ứng với trạng thái
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xff774606), // Màu nền nút Xóa/Done
+                                backgroundColor: Color(0xff774606),
+                                // Màu nền nút Xóa/Done
                                 foregroundColor: Colors.white,
-                                disabledBackgroundColor: Colors.orange,// Màu chữ nút Xóa/Done
+                                disabledBackgroundColor: Colors.orange,
+                                // Màu chữ nút Xóa/Done
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0), // Bo tròn góc nút
+                                  borderRadius: BorderRadius.circular(
+                                    8.0,
+                                  ), // Bo tròn góc nút
                                 ),
-                                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Padding nút
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
+                                // Padding nút
                                 minimumSize: Size(0, 36), // Chiều cao tối thiểu
                               ),
-                              child: Text(isDoneState ? 'Done' : 'Xóa', style: TextStyle(
-                                  color: Colors.white
-                              ),), // Text nút
+                              child: Text(
+                                isDoneState ? 'Done' : 'Xóa',
+                                style: TextStyle(color: Colors.white),
+                              ), // Text nút
                             ),
                           ),
                           SizedBox(width: 8.0), // Khoảng cách giữa hai nút
-
                           // Nút 2 (Hủy hoặc Cancel)
-                          OutlinedButton( // Sử dụng OutlinedButton cho nút có viền
+                          OutlinedButton(
+                            // Sử dụng OutlinedButton cho nút có viền
                             onPressed: onCancelOrDone, // Gán callback
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: isDoneState ? Colors.redAccent : Colors.redAccent, // Màu chữ nút Hủy/Cancel (màu đỏ nhạt)
-                              side: BorderSide(color: isDoneState ? Colors.redAccent : Colors.redAccent, width: 1.0), // Màu viền
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0), // Bo tròn góc nút
+                              foregroundColor:
+                                  isDoneState
+                                      ? Colors.redAccent
+                                      : Colors.redAccent,
+                              // Màu chữ nút Hủy/Cancel (màu đỏ nhạt)
+                              side: BorderSide(
+                                color:
+                                    isDoneState
+                                        ? Colors.redAccent
+                                        : Colors.redAccent,
+                                width: 1.0,
                               ),
-                              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Padding nút
+                              // Màu viền
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  8.0,
+                                ), // Bo tròn góc nút
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 8.0,
+                              ),
+                              // Padding nút
                               minimumSize: Size(0, 36), // Chiều cao tối thiểu
                             ),
-                            child: Text(isDoneState ? 'Cancel' : 'Hủy'), // Text nút
+                            child: Text(
+                              isDoneState ? 'Cancel' : 'Hủy',
+                            ), // Text nút
                           ),
                         ],
                       ),
@@ -489,6 +566,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
       ),
     );
   }
+
   Widget _buildFavoritesSection() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -500,7 +578,8 @@ class _AdminHomepageState extends State<AdminHomepage> {
         Row(
           children: [
             SizedBox(width: 16),
-            Icon(Icons.favorite, color: Colors.orange, size: 20), // Icon ngôi sao
+            Icon(Icons.favorite, color: Colors.orange, size: 20),
+            // Icon ngôi sao
             SizedBox(width: 4),
             Text(
               '27436', // Giá trị rating
@@ -517,6 +596,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
       ],
     );
   }
+
   Widget _buildCommentSection() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -528,7 +608,8 @@ class _AdminHomepageState extends State<AdminHomepage> {
         Row(
           children: [
             SizedBox(width: 16),
-            Icon(Icons.message, color: Colors.orange, size: 20), // Icon ngôi sao
+            Icon(Icons.message, color: Colors.orange, size: 20),
+            // Icon ngôi sao
             SizedBox(width: 4),
             Text(
               '100', // Giá trị rating
@@ -545,6 +626,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
       ],
     );
   }
+
   Widget _buildPopularModelsSection(BuildContext context, String idName) {
     return StreamBuilder(
       stream: data.snapshots(),
@@ -563,7 +645,10 @@ class _AdminHomepageState extends State<AdminHomepage> {
                   ),
                   Text(
                     'Xem tất cả',
-                    style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue,
+                    ), // Màu link
                   ),
                 ],
               ),
@@ -577,32 +662,39 @@ class _AdminHomepageState extends State<AdminHomepage> {
                   child: Row(
                     children: [
                       Expanded(
-                          child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: snapshot.data?.docs.length,
-                              itemBuilder: (context, index) {
-                                final DocumentSnapshot records = snapshot.data!.docs[index];
-                                Random random = Random();
-                                var indexRandom = random.nextInt(ColorRamdom.animalColor.length);
-                                String idname = records["idName"];
-                                int iD = records["id"];
-                                return (idname == idName) ? Container(
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: snapshot.data?.docs.length,
+                          itemBuilder: (context, index) {
+                            final DocumentSnapshot records =
+                                snapshot.data!.docs[index];
+                            String idname = records["idName"];
+                            return (idname == idName)
+                                ? Container(
                                   margin: EdgeInsets.only(right: 5),
-                                  width: 150, // Chiều rộng của mỗi model placeholder
-                                  height: 100, // Chiều cao của mỗi model placeholder
+                                  width: 150,
+                                  // Chiều rộng của mỗi model placeholder
+                                  height: 100,
+                                  // Chiều cao của mỗi model placeholder
                                   decoration: BoxDecoration(
                                     color: Colors.grey[300], // Màu placeholder
                                     borderRadius: BorderRadius.circular(12.0),
                                     image: DecorationImage(
-                                        image: AssetImage(records["imageUrl"])),
+                                      image: AssetImage(records["imageUrl"]),
+                                    ),
                                     // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
                                   ),
                                   // Child: Text('Model Placeholder'), // Ví dụ nội dung
-                                ) : Container();
-                              }))// Thêm các placeholder khác nếu cần
+                                )
+                                : Container();
+                          },
+                        ),
+                      ), // Thêm các placeholder khác nếu cần
                     ],
                   ),
                 ),
@@ -615,19 +707,18 @@ class _AdminHomepageState extends State<AdminHomepage> {
     );
   }
 
-  Widget _buildModelPlaceholder(String image) {
-    return Container(
-      margin: EdgeInsets.only(right: 5),
-      width: 150, // Chiều rộng của mỗi model placeholder
-      height: 100, // Chiều cao của mỗi model placeholder
-      decoration: BoxDecoration(
-        color: Colors.grey[300], // Màu placeholder
-        borderRadius: BorderRadius.circular(12.0),
-        image: DecorationImage(
-            image: AssetImage(image)),
-        // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
-      ),
-      // Child: Text('Model Placeholder'), // Ví dụ nội dung
-    );
-  }
+  // Widget _buildModelPlaceholder(String image) {
+  //   return Container(
+  //     margin: EdgeInsets.only(right: 5),
+  //     width: 150, // Chiều rộng của mỗi model placeholder
+  //     height: 100, // Chiều cao của mỗi model placeholder
+  //     decoration: BoxDecoration(
+  //       color: Colors.grey[300], // Màu placeholder
+  //       borderRadius: BorderRadius.circular(12.0),
+  //       image: DecorationImage(image: AssetImage(image)),
+  //       // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
+  //     ),
+  //     // Child: Text('Model Placeholder'), // Ví dụ nội dung
+  //   );
+  // }
 }

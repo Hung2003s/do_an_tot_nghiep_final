@@ -1,8 +1,8 @@
-import 'dart:math';
+
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../user/const/ar_list_color.dart';
+
 import 'animal_info_screen.dart';
 
 // Import Bottom Navigation Bar components nếu cần
@@ -21,17 +21,8 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   // Danh sách các danh mục lọc
   final List<String> _categories = ['All', 'An co', 'An thit', 'Khung Long'];
   int _selectedCategoryIndex = 0; // Chỉ mục danh mục đang được chọn
-  late String type;
-  // Dữ liệu danh sách động vật (Giả định)
-  // List<Animal> _allAnimals = [
-  //   Animal(name: 'Cá mập', category: 'Nước mặn', rating: 4.9, price: 60.0),
-  //   Animal(name: 'Chicken Bhuna', category: 'Breakfast', rating: 4.9, reviewCount: 10, price: 30.0),
-  //   Animal(name: 'Mazalichicken Halim', category: 'Breakfast', rating: 4.9, reviewCount: 10, price: 25.0),
-  //   // Thêm các đối tượng Animal khác ở đây
-  //   Animal(name: 'Sư tử', category: 'Thịt', rating: 4.8, price: 100.0),
-  //   Animal(name: 'Bò', category: 'Cỏ', rating: 4.5, reviewCount: 5, price: 40.0),
-  //   Animal(name: 'Cá voi', category: 'Nước mặn', rating: 5.0, reviewCount: 20, price: 120.0),
-  // ];
+  late String type = "All";
+
 
   // List<Animal> _filteredAnimals = []; // Danh sách động vật sau khi lọc
 
@@ -46,9 +37,20 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
     setState(() {
       _selectedCategoryIndex = index; // Cập nhật chỉ mục danh mục được chọn
     });
-    // if(_selectedCategoryIndex == 0 ) {
-    //   type =
-    // }
+    switch (_selectedCategoryIndex) {
+      case 0 :
+        type = "All";
+        break;
+      case 1 :
+        type = "anco";
+        break;
+      case 2 :
+        type = "anthit";
+        break;
+      case 3 :
+        type = "trencan";
+        break;
+    }
   }
 
   @override
@@ -77,7 +79,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
           ),
 
           // Danh sách động vật (cuộn được và chiếm hết không gian còn lại)
-          _buildListAnimal(context,  'anco')
+          _buildListAnimal(context,  _selectedCategoryIndex)
         ],
       ),
       // Bottom Navigation Bar (Tái sử dụng từ màn hình trước)
@@ -141,7 +143,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
       ),
     );
   }
-  Widget _buildListAnimal(BuildContext context, String idName) {
+  Widget _buildListAnimal(BuildContext context, int index) {
     return StreamBuilder(
       stream: data.snapshots(),
       builder: (context, snapshot) {
@@ -167,8 +169,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                   itemBuilder: (context, index) {
                     final DocumentSnapshot records = snapshot.data!.docs[index];
                     String idname = records["idName"];
-                    int iD = records["id"];
-                    return (idname == idName) ? Container(
+                    return (_selectedCategoryIndex == 0) ? Container(
                       padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding dọc cho mỗi item
                       decoration: BoxDecoration(
                         border: Border(
@@ -217,17 +218,9 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                                     const Icon(Icons.favorite, color: Colors.amber, size: 16),
                                     const SizedBox(width: 4.0),
                                     Text(
-                                      '200', // Định dạng rating 1 chữ số thập phân
+                                      '${records["favorcount"]}', // Định dạng rating 1 chữ số thập phân
                                       style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                                     ),
-                                    if ('animal.reviewCount' != null) // Hiển thị số review nếu có
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 4.0),
-                                        child: Text(
-                                          '(10 Review)',
-                                          style: const TextStyle(fontSize: 12.0, color: Colors.grey),
-                                        ),
-                                      ),
                                   ],
                                 ),
                               ],
@@ -241,16 +234,96 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    '\$ 200', // Định dạng giá
+                                    'Miễn phí', // Định dạng giá
                                     style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(width: 4.0),
-                                  const Icon(Icons.more_horiz, color: Colors.grey), // Icon ba chấm
+                                  // Icon ba chấm
                                 ],
                               ),
                               const SizedBox(height: 8.0), // Khoảng cách
                               const Text(
-                                'Pick UP', // Text "Pick UP"
+                                'Có sẵn', // Text "Pick UP"
+                                style: TextStyle(fontSize: 12.0, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ) : (idname == type) ? Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding dọc cho mỗi item
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: Colors.grey[300]!, width: 1.0), // Đường phân cách mỏng
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Placeholder Ảnh/Biểu tượng
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12.0), // Bo tròn góc
+                            ),
+                            child: Image.asset(records["imageUrl"], fit: BoxFit.cover,),
+                          ),
+                          const SizedBox(width: 16.0), // Khoảng cách
+
+                          // Phần Nội dung (Tên, Loại, Rating)
+                          Expanded( // Chiếm hết không gian còn lại trừ phần bên phải cố định
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  records['nameAnimal'],
+                                  style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4.0),
+                                Container( // Container cho label loại
+                                  padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange[100], // Màu nền nhạt cam
+                                    borderRadius: BorderRadius.circular(4.0),
+                                  ),
+                                  child: Text(
+                                    records['idName'],
+                                    style: TextStyle(fontSize: 12.0, color: Colors.orange[700]), // Màu chữ cam
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                                Row( // Rating
+                                  children: [
+                                    const Icon(Icons.favorite, color: Colors.amber, size: 16),
+                                    const SizedBox(width: 4.0),
+                                    Text(
+                                      '${records["favorcount"]}', // Định dạng rating 1 chữ số thập phân
+                                      style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Phần bên phải (Giá, ...)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end, // Căn chỉnh sang phải
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Miễn phí', // Định dạng giá
+                                    style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                ],
+                              ),
+                              const SizedBox(height: 8.0), // Khoảng cách
+                              const Text(
+                                'có sẵn', // Text "Pick UP"
                                 style: TextStyle(fontSize: 12.0, color: Colors.grey),
                               ),
                             ],

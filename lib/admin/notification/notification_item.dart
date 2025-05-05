@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'notification_item.dart'; // Import model NotificationItem
 
 class NotificationListItem extends StatelessWidget {
   const NotificationListItem({
