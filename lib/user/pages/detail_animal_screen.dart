@@ -6,7 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:native_ar_viewer/native_ar_viewer.dart';
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
-//import '../ui/show_image_3d.dart';
+import '../ui/show_image_3d.dart';
+
 
 class DetailAnimalScreen extends StatefulWidget {
   const DetailAnimalScreen({
@@ -65,16 +66,16 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            _launchAR(arguments["3Dimage"]);
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) {
-            //       // do something
-            //       return ShowImage3DScreen(image3d: arguments["3Dimage"]);
-            //     },
-            //   ),
-            // );
+           // _launchAR(arguments["3Dimage"]);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  // do something
+                  return ShowImage3DScreen(image3d: arguments["3Dimage"]);
+                },
+              ),
+            );
           },
           child: Stack(
             children: [

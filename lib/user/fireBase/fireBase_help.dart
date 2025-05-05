@@ -38,3 +38,16 @@ Future<List<Map<String, dynamic>>> getTrackingImageData() async {
   }
   return dataListImage;
 }
+
+Future<List<Map<String, dynamic>>> getAnimalData() async {
+  CollectionReference modeldata = FirebaseFirestore.instance.collection("animalDB");
+  List<DocumentSnapshot> items = [];
+  List<Map<String, dynamic>> dataListImage = [];
+
+  QuerySnapshot snapshot = await modeldata.get();
+  for (var element in snapshot.docs) {
+    var mapData = element.data() as Map<String, dynamic>;
+    dataListImage.add(mapData);
+  }
+  return dataListImage;
+}

@@ -1,6 +1,11 @@
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+
+import '../../user/const/ar_list_color.dart';
 
 class ChartData {
   ChartData(this.x, this.y);
@@ -10,14 +15,16 @@ class ChartData {
 }
 
 class AdminHomepage extends StatefulWidget {
-  const AdminHomepage({super.key});
+  final arguments;
+  const AdminHomepage({super.key,
+    this.arguments});
 
   @override
   State<AdminHomepage> createState() => _AdminHomepageState();
 }
 
 class _AdminHomepageState extends State<AdminHomepage> {
-
+  final CollectionReference data = FirebaseFirestore.instance.collection("animalDB");
   VoidCallback? onDelete ; // Callback khi nút Xóa được bấm
   VoidCallback? onCancelOrDone; // Callback khi nút Hủy/Done được bấm
   final bool isDoneState = false;
@@ -96,9 +103,12 @@ class _AdminHomepageState extends State<AdminHomepage> {
                       // Favorites Section
                       _buildFavoritesSection(),
                       SizedBox(height: 20),
-        
+
+                      _buildCommentSection(),
+                      SizedBox(height: 20),
+
                       // Popular Models Section
-                      _buildPopularModelsSection(),
+                      _buildPopularModelsSection(context,"trencan"),
                       SizedBox(height: 20),
                     ],
                   ),
@@ -184,7 +194,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
                       ),
                     ),
                     Text(
-                      'SỐ MÔ HÌNH HIỆN CÓ',
+                      'MÔ HÌNH HIỆN CÓ',
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
@@ -210,7 +220,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'SỐ NGƯỜI DÙNG',
+                    'NGƯỜI DÙNG ĐANG KY',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
@@ -483,72 +493,138 @@ class _AdminHomepageState extends State<AdminHomepage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Text(
+          'Số lượt yêu thích',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         Row(
           children: [
-            Text(
-              'Yêu thích',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
             SizedBox(width: 16),
-            Icon(Icons.star, color: Colors.amber, size: 20), // Icon ngôi sao
+            Icon(Icons.favorite, color: Colors.orange, size: 20), // Icon ngôi sao
             SizedBox(width: 4),
             Text(
-              '4.9', // Giá trị rating
+              '27436', // Giá trị rating
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
+            SizedBox(width: 10),
           ],
         ),
-        Text(
-          'Số lượt thích',
-          style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
-        ),
+
+        // Text(
+        //   'Số lượt thích',
+        //   style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
+        // ),
       ],
     );
   }
-
-  Widget _buildPopularModelsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildCommentSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Text(
+          'Tổng số lượt bình luận',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            SizedBox(width: 16),
+            Icon(Icons.message, color: Colors.orange, size: 20), // Icon ngôi sao
+            SizedBox(width: 4),
             Text(
-              'Những mô hình được phổ biến',
+              '100', // Giá trị rating
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            Text(
-              'Xem tất cả',
-              style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
-            ),
+            SizedBox(width: 10),
           ],
         ),
-        SizedBox(height: 16),
-        // Horizontal scrollable list of model placeholders
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildModelPlaceholder(),
-              SizedBox(width: 16),
-              _buildModelPlaceholder(),
-              SizedBox(width: 16),
-              _buildModelPlaceholder(), // Thêm các placeholder khác nếu cần
-            ],
-          ),
-        ),
+
+        // Text(
+        //   'Số lượt thích',
+        //   style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
+        // ),
       ],
     );
   }
+  Widget _buildPopularModelsSection(BuildContext context, String idName) {
+    return StreamBuilder(
+      stream: data.snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {}
+        if (snapshot.hasData) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Những mô hình được phổ biến',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Xem tất cả',
+                    style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              // Horizontal scrollable list of model placeholders
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 150,
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              itemCount: snapshot.data?.docs.length,
+                              itemBuilder: (context, index) {
+                                final DocumentSnapshot records = snapshot.data!.docs[index];
+                                Random random = Random();
+                                var indexRandom = random.nextInt(ColorRamdom.animalColor.length);
+                                String idname = records["idName"];
+                                int iD = records["id"];
+                                return (idname == idName) ? Container(
+                                  margin: EdgeInsets.only(right: 5),
+                                  width: 150, // Chiều rộng của mỗi model placeholder
+                                  height: 100, // Chiều cao của mỗi model placeholder
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300], // Màu placeholder
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    image: DecorationImage(
+                                        image: AssetImage(records["imageUrl"])),
+                                    // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
+                                  ),
+                                  // Child: Text('Model Placeholder'), // Ví dụ nội dung
+                                ) : Container();
+                              }))// Thêm các placeholder khác nếu cần
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+        return Container();
+      },
+    );
+  }
 
-  Widget _buildModelPlaceholder() {
+  Widget _buildModelPlaceholder(String image) {
     return Container(
+      margin: EdgeInsets.only(right: 5),
       width: 150, // Chiều rộng của mỗi model placeholder
       height: 100, // Chiều cao của mỗi model placeholder
       decoration: BoxDecoration(
         color: Colors.grey[300], // Màu placeholder
         borderRadius: BorderRadius.circular(12.0),
-
+        image: DecorationImage(
+            image: AssetImage(image)),
         // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
       ),
       // Child: Text('Model Placeholder'), // Ví dụ nội dung

@@ -3,7 +3,7 @@ import 'package:flutter_3d_controller/flutter_3d_controller.dart';
 
 class ShowImage3DScreen extends StatefulWidget {
   String image3d;
-   ShowImage3DScreen({super.key,  required this.image3d});
+  ShowImage3DScreen({super.key,  required this.image3d});
 
 
   @override

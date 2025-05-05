@@ -1,4 +1,5 @@
 import 'package:animal_2/admin/personal_info_menu/personal_info_item.dart';
+import 'package:animal_2/admin/personal_info_menu/user_management/user_management.dart';
 import 'package:flutter/material.dart';
 
 // Import Bottom Navigation Bar components nếu cần
@@ -31,17 +32,18 @@ class RevenueScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                      onPressed: () {
-                        Navigator.pop(context); // Quay lại màn hình trước
-                      },
-                    ),
+                    const SizedBox(width: 48.0),
+                    // IconButton(
+                    //   icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                    //   onPressed: () {
+                    //     Navigator.pop(context); // Quay lại màn hình trước
+                    //   },
+                    // ),
                     // Text Tiêu đề (có thể cần căn chỉnh nếu không dùng AppBar)
                     const Expanded( // Để tiêu đề chiếm không gian còn lại và có thể căn giữa
                       child: Center(
                         child: Text(
-                          'Doanh thu',
+                          'Cài đặt',
                           style: TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
@@ -53,45 +55,45 @@ class RevenueScreen extends StatelessWidget {
                     const SizedBox(width: 48.0), // Khoảng trống để cân bằng với nút back
                   ],
                 ),
-                const SizedBox(height: 20.0), // Khoảng cách
+                const SizedBox(height: 10.0), // Khoảng cách
 
                 // Text "Số tiền hiện có"
-                const Text(
-                  'Số tiền hiện có',
-                  style: TextStyle(fontSize: 16.0, color: Colors.white), // Màu trắng mờ
-                ),
-                const SizedBox(height: 8.0),
-
-                // Số dư
-                Center(
-                  child: const Text(
-                    '\$500.00',
-                    style: TextStyle(
-                      fontSize: 38.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20.0),
-
-                // Nút Withdraw
-                Center( // Căn giữa nút
-                  child: OutlinedButton(
-                    onPressed: () {
-                      // TODO: Xử lý khi bấm nút Withdraw
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white, // Màu chữ
-                      side: const BorderSide(color: Colors.white, width: 1.5), // Viền trắng
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0), // Bo tròn góc
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 12.0), // Padding
-                    ),
-                    child: const Text('Withdraw', style: TextStyle(fontSize: 16.0)),
-                  ),
-                ),
+                // const Text(
+                //   'Số tiền hiện có',
+                //   style: TextStyle(fontSize: 16.0, color: Colors.white), // Màu trắng mờ
+                // ),
+                // const SizedBox(height: 8.0),
+                //
+                // // Số dư
+                // Center(
+                //   child: const Text(
+                //     '\$500.00',
+                //     style: TextStyle(
+                //       fontSize: 38.0,
+                //       fontWeight: FontWeight.bold,
+                //       color: Colors.white,
+                //     ),
+                //   ),
+                // ),
+                // const SizedBox(height: 20.0),
+                //
+                // // Nút Withdraw
+                // Center( // Căn giữa nút
+                //   child: OutlinedButton(
+                //     onPressed: () {
+                //       // TODO: Xử lý khi bấm nút Withdraw
+                //     },
+                //     style: OutlinedButton.styleFrom(
+                //       foregroundColor: Colors.white, // Màu chữ
+                //       side: const BorderSide(color: Colors.white, width: 1.5), // Viền trắng
+                //       shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(20.0), // Bo tròn góc
+                //       ),
+                //       padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 12.0), // Padding
+                //     ),
+                //     child: const Text('Rút tiền', style: TextStyle(fontSize: 16.0)),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -105,7 +107,7 @@ class RevenueScreen extends StatelessWidget {
                   MenuListItem( // Thông tin cá nhân
                     icon: Icons.person_outline,
                     iconBackgroundColor: Colors.blue, // Màu nền icon
-                    label: 'Thông tin cá nhân',
+                    label: 'Quản lý sản phẩm',
                     rightWidget: const Icon(Icons.arrow_forward_ios, size: 16.0, color: Colors.grey), // Mũi tên
                     onTap: () {
                       // TODO: Điều hướng đến màn hình Thông tin cá nhân
@@ -114,7 +116,7 @@ class RevenueScreen extends StatelessWidget {
                   MenuListItem( // Cài đặt
                     icon: Icons.settings_outlined,
                     iconBackgroundColor: Colors.purple, // Màu nền icon
-                    label: 'Cài đặt',
+                    label: 'Thong ke',
                     rightWidget: const Icon(Icons.arrow_forward_ios, size: 16.0, color: Colors.grey), // Mũi tên
                     onTap: () {
                       // TODO: Điều hướng đến màn hình Cài đặt
@@ -126,6 +128,7 @@ class RevenueScreen extends StatelessWidget {
                     label: 'Quản lý người dùng',
                     rightWidget: const Icon(Icons.arrow_forward_ios, size: 16.0, color: Colors.grey), // Mũi tên
                     onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_)=> UserManagementScreen()));
                       // TODO: Điều hướng đến màn hình Quản lý người dùng
                     },
                   ),

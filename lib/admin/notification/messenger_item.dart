@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
- // Import model MessageItem
+// Import model MessageItem
 
 class MessageListItem extends StatelessWidget {
-
-  const MessageListItem({
-    Key? key,
-  }) : super(key: key);
+  const MessageListItem({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,12 +10,17 @@ class MessageListItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding dọc
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.grey[300]!, width: 1.0), // Đường phân cách
+          bottom: BorderSide(
+            color: Colors.grey[300]!,
+            width: 1.0,
+          ), // Đường phân cách
         ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center, // Căn giữa các mục theo chiều dọc
+        crossAxisAlignment: CrossAxisAlignment.center,
+        // Căn giữa các mục theo chiều dọc
         children: [
+          SizedBox(width: 10),
           // Avatar và chấm trạng thái
           Stack(
             children: [
@@ -37,22 +39,28 @@ class MessageListItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.green, // Màu của chấm trạng thái
-                    border: Border.all(color: Colors.white, width: 2.0), // Viền trắng
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2.0,
+                    ), // Viền trắng
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(width: 16.0), // Khoảng cách
-
           // Tên và tin nhắn cuối
-          Expanded( // Chiếm hết không gian còn lại trừ phần bên phải
+          Expanded(
+            // Chiếm hết không gian còn lại trừ phần bên phải
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'name',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
                 ),
                 const SizedBox(height: 2.0),
                 Text(
@@ -65,33 +73,39 @@ class MessageListItem extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16.0), // Khoảng cách
-
           // Thời gian và Badge chưa đọc
           Column(
-            crossAxisAlignment: CrossAxisAlignment.end, // Căn sang phải
-            mainAxisAlignment: MainAxisAlignment.center, // Căn giữa theo chiều dọc
+            crossAxisAlignment: CrossAxisAlignment.end,
+            // Căn sang phải
+            mainAxisAlignment: MainAxisAlignment.center,
+            // Căn giữa theo chiều dọc
             children: [
               Text(
                 'time',
                 style: TextStyle(color: Colors.grey[600], fontSize: 12.0),
               ),
               // if (message.unreadCount != null && message.unreadCount! > 0) // Chỉ hiển thị nếu có tin nhắn chưa đọc
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0), // Khoảng cách trên
-                  child: Container(
-                    padding: const EdgeInsets.all(5.0), // Padding bên trong badge
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.orange, // Màu nền badge
-                    ),
-                    child: Text(
-                      '3',
-                      style: const TextStyle(color: Colors.white, fontSize: 10.0, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0), // Khoảng cách trên
+                child: Container(
+                  padding: const EdgeInsets.all(5.0), // Padding bên trong badge
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.orange, // Màu nền badge
+                  ),
+                  child: Text(
+                    '3',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10.0,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
+              ),
             ],
           ),
+          SizedBox(width: 10),
         ],
       ),
     );
