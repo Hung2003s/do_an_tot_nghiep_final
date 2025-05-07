@@ -2,7 +2,12 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/routes/transitions_type.dart';
 
+import '../../user/const/ar_list_color.dart';
+import '../../user/pages/detail_animal_screen.dart';
 import 'animal_info_screen.dart';
 
 // Import Bottom Navigation Bar components nếu cần
@@ -150,26 +155,27 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {}
         if (snapshot.hasData) {
           return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => AnimalInfoScreen()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                // Padding ngang cho ListView
-                child: ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  itemCount: snapshot.data?.docs.length,
-                  itemBuilder: (context, index) {
-                    final DocumentSnapshot records = snapshot.data!.docs[index];
-                    String idname = records["idName"];
-                    return (_selectedCategoryIndex == 0) ? Container(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              // Padding ngang cho ListView
+              child: ListView.builder(
+                scrollDirection: Axis.vertical,
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: snapshot.data?.docs.length,
+                itemBuilder: (context, index) {
+                  final DocumentSnapshot records = snapshot.data!.docs[index];
+                  String idname = records["idName"];
+                  return (_selectedCategoryIndex == 0) ? GestureDetector(
+                    onTap: () {
+                      Get.to(
+                              () => AnimalInfoScreen(
+                            arguments: records,),
+                          curve: Curves.linear,
+                          transition: Transition.rightToLeft);
+                    },
+                    child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding dọc cho mỗi item
                       decoration: BoxDecoration(
                         border: Border(
@@ -250,7 +256,16 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                           ),
                         ],
                       ),
-                    ) : (idname == type) ? Container(
+                    ),
+                  ) : (idname == type) ? GestureDetector(
+                    onTap: (){
+                      Get.to(
+                              () => AnimalInfoScreen(
+                            arguments: records,),
+                          curve: Curves.linear,
+                          transition: Transition.rightToLeft);
+                    },
+                    child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding dọc cho mỗi item
                       decoration: BoxDecoration(
                         border: Border(
@@ -330,9 +345,9 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                           ),
                         ],
                       ),
-                    ) : Container(); // Sử dụng widget item
-                  },
-                ),
+                    ),
+                  ) : Container(); // Sử dụng widget item
+                },
               ),
             ),
           );

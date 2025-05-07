@@ -116,7 +116,7 @@ class RevenueScreen extends StatelessWidget {
                   MenuListItem( // Cài đặt
                     icon: Icons.settings_outlined,
                     iconBackgroundColor: Colors.purple, // Màu nền icon
-                    label: 'Thong ke',
+                    label: 'Quản lý thông tin',
                     rightWidget: const Icon(Icons.arrow_forward_ios, size: 16.0, color: Colors.grey), // Mũi tên
                     onTap: () {
                       // TODO: Điều hướng đến màn hình Cài đặt
@@ -165,15 +165,7 @@ class RevenueScreen extends StatelessWidget {
           ),
         ],
       ),
-      // Bottom Navigation Bar (Tái sử dụng)
-      // bottomNavigationBar: _buildBottomNavigationBar(), // Cần implement hàm này
-      // floatingActionButton: FloatingActionButton(...), // Cần implement nút này
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, // Cần implement vị trí này
     );
   }
 
-// TODO: Implement hàm build Bottom Navigation Bar (tái sử dụng từ màn hình trước)
-// Widget _buildBottomNavigationBar() {
-//   return BottomAppBar(...);
-// }
 }

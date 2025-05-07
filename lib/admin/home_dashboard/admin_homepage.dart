@@ -1,9 +1,10 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import '../list_product/list_animal_screen.dart';
 
 class ChartData {
   ChartData(this.x, this.y);
@@ -13,9 +14,7 @@ class ChartData {
 }
 
 class AdminHomepage extends StatefulWidget {
-  final arguments;
-
-  const AdminHomepage({super.key, this.arguments});
+  const AdminHomepage({super.key});
 
   @override
   State<AdminHomepage> createState() => _AdminHomepageState();
@@ -25,6 +24,9 @@ class _AdminHomepageState extends State<AdminHomepage> {
   final CollectionReference data = FirebaseFirestore.instance.collection(
     "animalDB",
   );
+
+  late Future<AggregateQuerySnapshot> _totalLikesFuture; //hàm truy vấn tổng hợp
+
   VoidCallback? onDelete; // Callback khi nút Xóa được bấm
   VoidCallback? onCancelOrDone; // Callback khi nút Hủy/Done được bấm
   final bool isDoneState = false;
@@ -44,6 +46,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    _totalLikesFuture = _fetchTotalLikes();
   }
 
   void _showMyModalBottomSheet() {
@@ -101,48 +104,50 @@ class _AdminHomepageState extends State<AdminHomepage> {
     );
   }
 
+  Future<AggregateQuerySnapshot> _fetchTotalLikes() async {
+    return await FirebaseFirestore.instance
+        .collection('animalDB')
+        .aggregate(sum('favorcount'))
+        .get();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          child: Column(
-            children: [
-              // Header
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 16.0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Statistics Section
-                      _buildStatisticsSection(),
-                      SizedBox(height: 20),
+        child: Column(
+          children: [
+            // Header
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Statistics Section
+                    _buildStatisticsSection(),
+                    SizedBox(height: 20),
 
-                      // Graph Section
-                      _buildGraphSection(),
-                      SizedBox(height: 20),
+                    // Graph Section
+                    _buildGraphSection(),
+                    SizedBox(height: 20),
 
-                      // Favorites Section
-                      _buildFavoritesSection(),
-                      SizedBox(height: 20),
+                    // Favorites Section
+                    _buildFavoritesSection(),
+                    SizedBox(height: 20),
 
-                      _buildCommentSection(),
-                      SizedBox(height: 20),
+                    // _buildCommentSection(),
+                    // SizedBox(height: 20),
 
-                      // Popular Models Section
-                      _buildPopularModelsSection(context, "trencan"),
-                      SizedBox(height: 20),
-                    ],
-                  ),
+                    // Popular Models Section
+                    _buildPopularModelsSection(context, "trencan"),
+                    SizedBox(height: 20),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -581,9 +586,29 @@ class _AdminHomepageState extends State<AdminHomepage> {
             Icon(Icons.favorite, color: Colors.orange, size: 20),
             // Icon ngôi sao
             SizedBox(width: 4),
-            Text(
-              '27436', // Giá trị rating
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            FutureBuilder<AggregateQuerySnapshot>(
+              future: _totalLikesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  // Đang trong quá trình fetch dữ liệu
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  // Có lỗi xảy ra trong quá trình fetch
+                  return Text('Lỗi: ${snapshot.error}');
+                } else if (snapshot.hasData) {
+                  // Dữ liệu đã fetch thành công
+                  final totalLikesSnapshot = snapshot.data!;
+                  // Lấy giá trị tổng lượt thích từ kết quả truy vấn tổng hợp
+                  // Sử dụng .getSum('likes') với tên trường đã dùng trong sum()
+                  final totalLikes = totalLikesSnapshot.getSum('likes');
+                  return Text(
+                    totalLikes?.toString() ?? 'Không có dữ liệu', // Giá trị rating
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  );
+                } else {
+                  return const Text('Không có dữ liệu tổng lượt thích');
+                }
+              },
             ),
             SizedBox(width: 10),
           ],
@@ -597,35 +622,35 @@ class _AdminHomepageState extends State<AdminHomepage> {
     );
   }
 
-  Widget _buildCommentSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Tổng số lượt bình luận',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        Row(
-          children: [
-            SizedBox(width: 16),
-            Icon(Icons.message, color: Colors.orange, size: 20),
-            // Icon ngôi sao
-            SizedBox(width: 4),
-            Text(
-              '100', // Giá trị rating
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(width: 10),
-          ],
-        ),
-
-        // Text(
-        //   'Số lượt thích',
-        //   style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
-        // ),
-      ],
-    );
-  }
+  // Widget _buildCommentSection() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //     children: [
+  //       Text(
+  //         'Tổng số lượt bình luận',
+  //         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //       ),
+  //       Row(
+  //         children: [
+  //           SizedBox(width: 16),
+  //           Icon(Icons.message, color: Colors.orange, size: 20),
+  //           // Icon ngôi sao
+  //           SizedBox(width: 4),
+  //           Text(
+  //             '100', // Giá trị rating
+  //             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //           ),
+  //           SizedBox(width: 10),
+  //         ],
+  //       ),
+  //
+  //       // Text(
+  //       //   'Số lượt thích',
+  //       //   style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
+  //       // ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildPopularModelsSection(BuildContext context, String idName) {
     return StreamBuilder(
@@ -643,12 +668,21 @@ class _AdminHomepageState extends State<AdminHomepage> {
                     'Những mô hình được phổ biến',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  Text(
-                    'Xem tất cả',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.blue,
-                    ), // Màu link
+                  GestureDetector(
+                    onTap: () {
+                      Get.to(
+                          () => AnimalListScreen(),
+                          curve: Curves.linear,
+                          transition: Transition.rightToLeft
+                      );
+                    },
+                    child: Text(
+                      'Xem tất cả',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue,
+                      ), // Màu link
+                    ),
                   ),
                 ],
               ),
@@ -656,7 +690,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
               // Horizontal scrollable list of model placeholders
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Container(
+                child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: 150,
                   child: Row(
