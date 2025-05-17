@@ -1,4 +1,5 @@
 
+import 'package:animal_2/user/pages/favorite_model.dart';
 import 'package:animal_2/user/ui/ui_home_main.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -135,7 +136,24 @@ class _HomeNatureState extends State<HomeNature> {
                 Get.to(() => const ScreenKnown(), curve: Curves.linear, transition: Transition.rightToLeft);
               },
             ),
-
+            ListTile(
+              leading: const Icon(
+                Icons.favorite,
+                size: 30,
+                color: OneColors.black,
+              ),
+              title: Text(
+                'Yeu Thich',
+                style: GoogleFonts.aBeeZee(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              onTap: () {
+                Get.to(() => const FavoriteModelScreen(), curve: Curves.linear, transition: Transition.rightToLeft);
+              },
+            ),
           ],
         ),
       ),
@@ -146,34 +164,30 @@ class _HomeNatureState extends State<HomeNature> {
     return Builder(
       builder: (context) => Align(
         alignment: Alignment.topRight,
-        child: Column(
-          children: [
-            InkWell(
-              onTap: () {
-                Scaffold.of(context).openEndDrawer();
-              },
-              child: Container(
-                height: 40,
-                width: 40,
-                margin: const EdgeInsets.only(top: 70, right: 20),
-                decoration: BoxDecoration(
-                    color: const Color(0xFFA084DC),
-                    shape: BoxShape.circle,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: OneColors.grey,
-                        blurRadius: 5,
-                      ),
-                    ],
-                    border: Border.all(color: OneColors.white, width: 1)),
-                child: const Icon(
-                  Icons.article_outlined,
-                  size: 25,
-                  color: OneColors.white,
-                ),
-              ),
+        child: GestureDetector(
+          onTap: () {
+            Scaffold.of(context).openEndDrawer();
+          },
+          child: Container(
+            height: 40,
+            width: 40,
+            margin: const EdgeInsets.only(top: 70, right: 20),
+            decoration: BoxDecoration(
+                color: const Color(0xFFA084DC),
+                shape: BoxShape.circle,
+                boxShadow: const [
+                  BoxShadow(
+                    color: OneColors.grey,
+                    blurRadius: 5,
+                  ),
+                ],
+                border: Border.all(color: OneColors.white, width: 1)),
+            child: const Icon(
+              Icons.article_outlined,
+              size: 25,
+              color: OneColors.white,
             ),
-          ],
+          ),
         ),
       ),
     );

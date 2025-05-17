@@ -197,98 +197,100 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
                 ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 10.0, left: 10),
-                  child: Text(
-                    'Bình luận',
-                    style: GoogleFonts.aBeeZee(
-                      fontSize: 20.0,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Container(
-                height: 300,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: OneColors.black, width: 1),
-                ),
-                child: Container(
-                  padding: EdgeInsets.only(top: 4),
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(left: 10),
-                              padding: EdgeInsets.all(15),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                image: DecorationImage(
-                                    image: AssetImage('assets/avt_image/avt_lmh.jpg'),
-                                  fit: BoxFit.cover
-                                )
-                              ),
-                            ),
-                            SizedBox(width:10,),
-                            Expanded(
-                              child: Container(
-                                width: 200,
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(width: 1, color: Color(0xff565656))
-                                ),
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'De lai binh luan cua ban',
-                                    hintStyle: TextStyle(
-                                      color: Color(0xff565656).withValues(alpha: 0.5),
-                                      fontSize: 12,
-                                    ),
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.symmetric(vertical: 12)
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width:10,),
-                            IconButton(
-                                onPressed: (){},
-                                icon: Icon(Icons.send), color: Color(0xff329191),)
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 5,),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: 3,
-                          scrollDirection: Axis.vertical,
-                          padding: EdgeInsets.only(),
-                          itemBuilder: (context, index) {
-                            return buildComment();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+
+            //Comment
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.start,
+            //   children: [
+            //     Padding(
+            //       padding: const EdgeInsets.only(top: 10.0, left: 10),
+            //       child: Text(
+            //         'Bình luận',
+            //         style: GoogleFonts.aBeeZee(
+            //           fontSize: 20.0,
+            //           color: Colors.black,
+            //           fontWeight: FontWeight.bold,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 10),
+            //   child: Container(
+            //     height: 300,
+            //     padding: const EdgeInsets.symmetric(horizontal: 10),
+            //     decoration: BoxDecoration(
+            //       color: Colors.white.withValues(alpha: 0.6),
+            //       borderRadius: BorderRadius.circular(10),
+            //       border: Border.all(color: OneColors.black, width: 1),
+            //     ),
+            //     child: Container(
+            //       padding: EdgeInsets.only(top: 4),
+            //       child: Column(
+            //         children: [
+            //           Container(
+            //             height: 40,
+            //             decoration: BoxDecoration(
+            //             ),
+            //             child: Row(
+            //               children: [
+            //                 Container(
+            //                   margin: EdgeInsets.only(left: 10),
+            //                   padding: EdgeInsets.all(15),
+            //                   decoration: BoxDecoration(
+            //                     shape: BoxShape.circle,
+            //                     image: DecorationImage(
+            //                         image: AssetImage('assets/avt_image/avt_lmh.jpg'),
+            //                       fit: BoxFit.cover
+            //                     )
+            //                   ),
+            //                 ),
+            //                 SizedBox(width:10,),
+            //                 Expanded(
+            //                   child: Container(
+            //                     width: 200,
+            //                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            //                     decoration: BoxDecoration(
+            //                       borderRadius: BorderRadius.circular(15),
+            //                       border: Border.all(width: 1, color: Color(0xff565656))
+            //                     ),
+            //                     child: TextField(
+            //                       decoration: InputDecoration(
+            //                         hintText: 'De lai binh luan cua ban',
+            //                         hintStyle: TextStyle(
+            //                           color: Color(0xff565656).withValues(alpha: 0.5),
+            //                           fontSize: 12,
+            //                         ),
+            //                         border: InputBorder.none,
+            //                         contentPadding: EdgeInsets.symmetric(vertical: 12)
+            //                       ),
+            //                     ),
+            //                   ),
+            //                 ),
+            //                 SizedBox(width:10,),
+            //                 IconButton(
+            //                     onPressed: (){},
+            //                     icon: Icon(Icons.send), color: Color(0xff329191),)
+            //               ],
+            //             ),
+            //           ),
+            //           SizedBox(height: 5,),
+            //           Expanded(
+            //             child: ListView.builder(
+            //               itemCount: 3,
+            //               scrollDirection: Axis.vertical,
+            //               padding: EdgeInsets.only(),
+            //               itemBuilder: (context, index) {
+            //                 return buildComment();
+            //               },
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(

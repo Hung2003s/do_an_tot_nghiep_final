@@ -1,6 +1,9 @@
+import 'package:animal_2/admin/list_product/list_animal_screen.dart';
 import 'package:animal_2/admin/personal_info_menu/personal_info_item.dart';
 import 'package:animal_2/admin/personal_info_menu/user_management/user_management.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 // Import Bottom Navigation Bar components nếu cần
 // import 'bottom_navigation_bar.dart';
@@ -105,18 +108,22 @@ class RevenueScreen extends StatelessWidget {
               child: Column( // Sử dụng Column để xếp các MenuListItem
                 children: [
                   MenuListItem( // Thông tin cá nhân
-                    icon: Icons.person_outline,
+                    icon: Icons.panorama,
                     iconBackgroundColor: Colors.blue, // Màu nền icon
-                    label: 'Quản lý sản phẩm',
+                    label: 'Quản lý thông tin tip',
                     rightWidget: const Icon(Icons.arrow_forward_ios, size: 16.0, color: Colors.grey), // Mũi tên
                     onTap: () {
-                      // TODO: Điều hướng đến màn hình Thông tin cá nhân
+                      Get.to(
+                          () => AnimalListScreen(),
+                          curve: Curves.linear,
+                          transition: Transition.rightToLeft
+                      );
                     },
                   ),
                   MenuListItem( // Cài đặt
                     icon: Icons.settings_outlined,
                     iconBackgroundColor: Colors.purple, // Màu nền icon
-                    label: 'Quản lý thông tin',
+                    label: 'Quản lý thông tin tiến hóa',
                     rightWidget: const Icon(Icons.arrow_forward_ios, size: 16.0, color: Colors.grey), // Mũi tên
                     onTap: () {
                       // TODO: Điều hướng đến màn hình Cài đặt

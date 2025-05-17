@@ -178,7 +178,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             const SizedBox(height: 16.0),
             _buildTextInputField(
               controller: _phoneController,
-              label: 'Số điện thoại',
+              label: 'Số điện thoại bố (mẹ)',
               hintText: '0123 456 789',
               keyboardType: TextInputType.phone,
               readOnly: !_isEditing, // Chỉ đọc khi không ở chế độ chỉnh sửa
@@ -186,7 +186,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             const SizedBox(height: 16.0),
             _buildTextInputField(
               controller: _emailController,
-              label: 'Email',
+              label: 'Email bố (mẹ)',
               hintText: 'email@example.com',
               keyboardType: TextInputType.emailAddress,
               readOnly: !_isEditing, // Chỉ đọc khi không ở chế độ chỉnh sửa
@@ -221,41 +221,15 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     children: [
                       const Text('Giới tính', style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.grey)),
                       // Radio Buttons chỉ hoạt động khi ở chế độ chỉnh sửa
-                      Row( // Radio Button Nam
-                        children: [
-                          Radio<Gender>(
-                            value: Gender.male,
-                            groupValue: _selectedGender,
-                            onChanged: _isEditing ? (Gender? newValue) { // Chỉ cho phép thay đổi khi _isEditing là true
-                              setState(() {
-                                _selectedGender = newValue;
-                              });
-                            } : null, // Nếu không chỉnh sửa, onChanged là null (không tương tác được)
-                            activeColor: Colors.orange,
-                          ),
-                          const Text('Nam'),
-                        ],
-                      ),
-                      Row( // Radio Button Nữ
-                        children: [
-                          Radio<Gender>(
-                            value: Gender.female,
-                            groupValue: _selectedGender,
-                            onChanged: _isEditing ? (Gender? newValue) { // Chỉ cho phép thay đổi khi _isEditing là true
-                              setState(() {
-                                _selectedGender = newValue;
-                              });
-                            } : null, // Nếu không chỉnh sửa, onChanged là null
-                            activeColor: Colors.orange,
-                          ),
-                          const Text('Nữ'),
-                        ],
-                      ),
+                      const SizedBox(height: 8.0),
+                      _buildOptionInput()
                     ],
                   ),
                 ),
               ],
             ),
+
+
             const SizedBox(height: 20.0),
             _isEditing ? Center( // Căn giữa nút
               child: ElevatedButton(
@@ -276,15 +250,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               ),
             ) : Container(),
             const SizedBox(height: 16.0),
-            // TODO: Thêm nút Save ở dưới cùng nếu bạn muốn có 2 nút Save (trên và dưới)
-
           ],
         ),
       ),
-      // Bottom Navigation Bar (Tái sử dụng)
-      // bottomNavigationBar: _buildBottomNavigationBar(), // Cần implement hàm này
-      // floatingActionButton: FloatingActionButton(...), // Cần implement nút này
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, // Cần implement vị trí này
     );
   }
 
@@ -321,7 +289,36 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       ],
     );
   }
-
+Widget _buildOptionInput() {
+    return DropdownButtonFormField<Gender>(
+       value: _selectedGender,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: _isEditing ? Color(0xffd5d5d5) : Color(0xffb0f7ff),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+        ),
+        icon: const Icon(Icons.arrow_drop_down),
+        items: const [
+          DropdownMenuItem(
+            value: Gender.male,
+            child: Text('Nam'),
+          ),
+          DropdownMenuItem(
+            value: Gender.female,
+            child: Text('Nữ'),
+          ),
+        ],
+        onChanged: _isEditing ? (Gender? newValue) {
+         setState(() {
+           _selectedGender = newValue;
+         });
+        } : null,
+    );
+}
 // TODO: Implement hàm build Bottom Navigation Bar (tái sử dụng từ màn hình trước)
 // Widget _buildBottomNavigationBar() {
 //   return BottomAppBar(...);

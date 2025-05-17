@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import '../list_product/animal_info_screen.dart';
 import '../list_product/list_animal_screen.dart';
 
 class ChartData {
@@ -25,7 +26,8 @@ class _AdminHomepageState extends State<AdminHomepage> {
     "animalDB",
   );
 
-  late Future<AggregateQuerySnapshot> _totalLikesFuture; //hàm truy vấn tổng hợp
+  late Future<AggregateQuerySnapshot> _totalLikesFuture;
+  late Future<AggregateQuerySnapshot> _ModelFuture;//hàm truy vấn tổng hợp
 
   VoidCallback? onDelete; // Callback khi nút Xóa được bấm
   VoidCallback? onCancelOrDone; // Callback khi nút Hủy/Done được bấm
@@ -47,6 +49,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
     // TODO: implement initState
     super.initState();
     _totalLikesFuture = _fetchTotalLikes();
+    _ModelFuture = _fetchdModelCount();
   }
 
   void _showMyModalBottomSheet() {
@@ -108,6 +111,12 @@ class _AdminHomepageState extends State<AdminHomepage> {
     return await FirebaseFirestore.instance
         .collection('animalDB')
         .aggregate(sum('favorcount'))
+        .get();
+  }
+  Future<AggregateQuerySnapshot> _fetchdModelCount() async {
+    return await FirebaseFirestore.instance
+        .collection('animalDB')
+        .aggregate(count())
         .get();
   }
 
@@ -216,21 +225,41 @@ class _AdminHomepageState extends State<AdminHomepage> {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '20',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'MÔ HÌNH HIỆN CÓ',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
+                child: FutureBuilder<AggregateQuerySnapshot>(
+                  future:_ModelFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // Đang trong quá trình fetch dữ liệu
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      // Có lỗi xảy ra trong quá trình fetch
+                      return Text('Lỗi: ${snapshot.error}');
+                    } else if (snapshot.hasData) {
+                      // Dữ liệu đã fetch thành công
+                      final modelcount = snapshot.data!;
+                      // Lấy giá trị tổng lượt thích từ kết quả truy vấn tổng hợp
+                      // Sử dụng .getSum('likes') với tên trường đã dùng trong sum()
+                      final modelcounts = modelcount;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${modelcount}',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'MÔ HÌNH HIỆN CÓ',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return const Text('Không có dữ liệu tổng lượt thích');
+                    }
+                  },
                 ),
               ),
             ),
@@ -573,52 +602,54 @@ class _AdminHomepageState extends State<AdminHomepage> {
   }
 
   Widget _buildFavoritesSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Số lượt yêu thích',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        Row(
-          children: [
-            SizedBox(width: 16),
-            Icon(Icons.favorite, color: Colors.orange, size: 20),
-            // Icon ngôi sao
-            SizedBox(width: 4),
-            FutureBuilder<AggregateQuerySnapshot>(
-              future: _totalLikesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  // Đang trong quá trình fetch dữ liệu
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  // Có lỗi xảy ra trong quá trình fetch
-                  return Text('Lỗi: ${snapshot.error}');
-                } else if (snapshot.hasData) {
-                  // Dữ liệu đã fetch thành công
-                  final totalLikesSnapshot = snapshot.data!;
-                  // Lấy giá trị tổng lượt thích từ kết quả truy vấn tổng hợp
-                  // Sử dụng .getSum('likes') với tên trường đã dùng trong sum()
-                  final totalLikes = totalLikesSnapshot.getSum('likes');
-                  return Text(
-                    totalLikes?.toString() ?? 'Không có dữ liệu', // Giá trị rating
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  );
-                } else {
-                  return const Text('Không có dữ liệu tổng lượt thích');
-                }
-              },
-            ),
-            SizedBox(width: 10),
-          ],
-        ),
+    return Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Tổng số lượt yêu thích',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Row(
+            children: [
+              SizedBox(width: 16),
+              Icon(Icons.favorite, color: Colors.orange, size: 20),
+              // Icon ngôi sao
+              SizedBox(width: 4),
+              FutureBuilder<AggregateQuerySnapshot>(
+                future: _totalLikesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Đang trong quá trình fetch dữ liệu
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    // Có lỗi xảy ra trong quá trình fetch
+                    return Text('Lỗi: ${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    // Dữ liệu đã fetch thành công
+                    final totalLikesSnapshot = snapshot.data!;
+                    // Lấy giá trị tổng lượt thích từ kết quả truy vấn tổng hợp
+                    // Sử dụng .getSum('likes') với tên trường đã dùng trong sum()
+                    final totalLikes = totalLikesSnapshot.getSum('favorcount');
+                    return Text(
+                      totalLikes?.toInt().toString() ?? 'không có dữ liệu', // Giá trị rating
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    );
+                  } else {
+                    return const Text('Không có dữ liệu tổng lượt thích');
+                  }
+                },
+              ),
+              SizedBox(width: 10),
+            ],
+          ),
 
-        // Text(
-        //   'Số lượt thích',
-        //   style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
-        // ),
-      ],
+          // Text(
+          //   'Số lượt thích',
+          //   style: TextStyle(fontSize: 12, color: Colors.blue), // Màu link
+          // ),
+        ],
+      ),
     );
   }
 
@@ -658,6 +689,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {}
         if (snapshot.hasData) {
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -709,21 +741,30 @@ class _AdminHomepageState extends State<AdminHomepage> {
                                 snapshot.data!.docs[index];
                             String idname = records["idName"];
                             return (idname == idName)
-                                ? Container(
-                                  margin: EdgeInsets.only(right: 5),
-                                  width: 150,
-                                  // Chiều rộng của mỗi model placeholder
-                                  height: 100,
-                                  // Chiều cao của mỗi model placeholder
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300], // Màu placeholder
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    image: DecorationImage(
-                                      image: AssetImage(records["imageUrl"]),
+                                ? GestureDetector(
+                              onTap: () {
+                                Get.to(
+                                        () => AnimalInfoScreen(
+                                      arguments: records,),
+                                    curve: Curves.linear,
+                                    transition: Transition.rightToLeft);
+                              },
+                                  child: Container(
+                                    margin: EdgeInsets.only(right: 5),
+                                    width: 150,
+                                    // Chiều rộng của mỗi model placeholder
+                                    height: 100,
+                                    // Chiều cao của mỗi model placeholder
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300], // Màu placeholder
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      image: DecorationImage(
+                                        image: AssetImage(records["imageUrl"]),
+                                      ),
+                                      // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
                                     ),
-                                    // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
+                                    // Child: Text('Model Placeholder'), // Ví dụ nội dung
                                   ),
-                                  // Child: Text('Model Placeholder'), // Ví dụ nội dung
                                 )
                                 : Container();
                           },

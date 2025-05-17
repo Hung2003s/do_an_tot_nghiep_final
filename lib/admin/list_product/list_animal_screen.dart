@@ -148,7 +148,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
       ),
     );
   }
-  Widget _buildListAnimal(BuildContext context, int index) {
+  Widget _buildListAnimal(BuildContext context, int index, ) {
     return StreamBuilder(
       stream: data.snapshots(),
       builder: (context, snapshot) {
@@ -167,7 +167,8 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                 itemBuilder: (context, index) {
                   final DocumentSnapshot records = snapshot.data!.docs[index];
                   String idname = records["idName"];
-                  return (_selectedCategoryIndex == 0) ? GestureDetector(
+                  return (_selectedCategoryIndex == 0) ?
+                  GestureDetector(
                     onTap: () {
                       Get.to(
                               () => AnimalInfoScreen(

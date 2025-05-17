@@ -293,7 +293,7 @@ class _HomeMainState extends State<HomeMain> {
               ),
                Expanded(
                 flex: 6,
-                child: SearchBar(), // SizedBox(
+                child: SizedBox(), // SizedBox(
               )
             ],
           ),
