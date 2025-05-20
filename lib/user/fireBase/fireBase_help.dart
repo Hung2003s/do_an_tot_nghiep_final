@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<List<Map<String, dynamic>>> getTipsData() async {
-  CollectionReference modeldata = FirebaseFirestore.instance.collection("tipsDB");
+  CollectionReference modeldata =
+      FirebaseFirestore.instance.collection("tipsDB");
   List<DocumentSnapshot> items = [];
   List<Map<String, dynamic>> dataList = [];
 
@@ -14,7 +15,8 @@ Future<List<Map<String, dynamic>>> getTipsData() async {
 }
 
 Future<List<Map<String, dynamic>>> getEvolutionData() async {
-  CollectionReference modeldata = FirebaseFirestore.instance.collection("evolutionNews");
+  CollectionReference modeldata =
+      FirebaseFirestore.instance.collection("evolutionNews");
   List<DocumentSnapshot> items = [];
   List<Map<String, dynamic>> dataListEvo = [];
 
@@ -27,7 +29,8 @@ Future<List<Map<String, dynamic>>> getEvolutionData() async {
 }
 
 Future<List<Map<String, dynamic>>> getTrackingImageData() async {
-  CollectionReference modeldata = FirebaseFirestore.instance.collection("trackingImageDB");
+  CollectionReference modeldata =
+      FirebaseFirestore.instance.collection("trackingImageDB");
   List<DocumentSnapshot> items = [];
   List<Map<String, dynamic>> dataListImage = [];
 
@@ -40,7 +43,8 @@ Future<List<Map<String, dynamic>>> getTrackingImageData() async {
 }
 
 Future<List<Map<String, dynamic>>> getAnimalData() async {
-  CollectionReference modeldata = FirebaseFirestore.instance.collection("animalDB");
+  CollectionReference modeldata =
+      FirebaseFirestore.instance.collection("animalDB");
   List<DocumentSnapshot> items = [];
   List<Map<String, dynamic>> dataListImage = [];
 
@@ -50,4 +54,13 @@ Future<List<Map<String, dynamic>>> getAnimalData() async {
     dataListImage.add(mapData);
   }
   return dataListImage;
+}
+
+Future<void> deleteTip(String tipId) async {
+  try {
+    await FirebaseFirestore.instance.collection("tipsDB").doc(tipId).delete();
+  } catch (e) {
+    print('Error deleting tip: $e');
+    rethrow;
+  }
 }

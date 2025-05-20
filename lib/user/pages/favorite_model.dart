@@ -19,10 +19,8 @@ class FavoriteModelScreen extends StatefulWidget {
 }
 
 class _FavoriteModelScreenState extends State<FavoriteModelScreen> {
-  final CollectionReference data = FirebaseFirestore.instance.collection("animalDB");
-
-
-
+  final CollectionReference data =
+      FirebaseFirestore.instance.collection("animalDB");
 
   @override
   void initState() {
@@ -37,13 +35,12 @@ class _FavoriteModelScreenState extends State<FavoriteModelScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black, size: 35),
       ),
-        extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: true,
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage(OneImages.ar_background), fit: BoxFit.cover)
-        ),
+            image: DecorationImage(
+                image: AssetImage(OneImages.ar_background), fit: BoxFit.cover)),
         child: Column(
           children: [
             Container(
@@ -60,12 +57,12 @@ class _FavoriteModelScreenState extends State<FavoriteModelScreen> {
               ),
             ),
             _buildListAnimal(context, 'anco')
-
           ],
         ),
       ),
     );
   }
+
   Widget _buildListAnimal(BuildContext context, String idName) {
     return StreamBuilder(
       stream: data.snapshots(),
@@ -83,102 +80,127 @@ class _FavoriteModelScreenState extends State<FavoriteModelScreen> {
               itemCount: snapshot.data?.docs.length,
               itemBuilder: (context, index) {
                 Random random = Random();
-                var indexRandom = random.nextInt(ColorRamdom.animalColor.length);
-                final DocumentSnapshot records =
-                snapshot.data!.docs[index];
-                String idname = records["idName"];
+                var indexRandom =
+                    random.nextInt(ColorRamdom.animalColor.length);
+                final DocumentSnapshot records = snapshot.data!.docs[index];
+                String idname = records["AnimalID"];
                 return (idname == idName)
                     ? GestureDetector(
-                  onTap: () {
-                    Get.to(
-                            () => DetailAnimalScreen(
-                          arguments: records,
-                            colors: ColorRamdom.animalColor[indexRandom],),
-                        curve: Curves.linear,
-                        transition: Transition.rightToLeft);
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10), // Padding dọc cho mỗi item
-                    decoration: BoxDecoration(
-                      color: Color(0xff77a8a0).withValues(alpha: 0.8),
-                      border: Border(
-                        bottom: BorderSide(color: Colors.grey[300]!, width: 1.0), // Đường phân cách mỏng
-                      ),borderRadius: BorderRadius.circular(10)
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Placeholder Ảnh/Biểu tượng
-                        Container(
-                          width: 80,
-                          height: 80,
+                        onTap: () {
+                          Get.to(
+                              () => DetailAnimalScreen(
+                                    arguments: records,
+                                    colors:
+                                        ColorRamdom.animalColor[indexRandom],
+                                  ),
+                              curve: Curves.linear,
+                              transition: Transition.rightToLeft);
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12.0,
+                              horizontal: 10), // Padding dọc cho mỗi item
                           decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(12.0), // Bo tròn góc
-                          ),
-                          child: Image.asset(records["imageUrl"], fit: BoxFit.contain,),
-                        ),
-                        const SizedBox(width: 16.0), // Khoảng cách
-
-                        // Phần Nội dung (Tên, Loại, Rating)
-                        Expanded( // Chiếm hết không gian còn lại trừ phần bên phải cố định
-                          child: Column(
+                              color: Color(0xff77a8a0).withValues(alpha: 0.8),
+                              border: Border(
+                                bottom: BorderSide(
+                                    color: Colors.grey[300]!,
+                                    width: 1.0), // Đường phân cách mỏng
+                              ),
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                records['nameAnimal'],
-                                style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Container( // Container cho label loại
-                                padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                              // Placeholder Ảnh/Biểu tượng
+                              Container(
+                                width: 80,
+                                height: 80,
                                 decoration: BoxDecoration(
-                                  color: Colors.orange[100], // Màu nền nhạt cam
-                                  borderRadius: BorderRadius.circular(4.0),
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(
+                                      12.0), // Bo tròn góc
                                 ),
-                                child: Text(
-                                  records['idName'],
-                                  style: TextStyle(fontSize: 12.0, color: Colors.black), // Màu chữ cam
+                                child: Image.asset(
+                                  records["imageUrl"],
+                                  fit: BoxFit.contain,
                                 ),
                               ),
-                              const SizedBox(height: 8.0),
-                              Row( // Rating
+                              const SizedBox(width: 16.0), // Khoảng cách
+
+                              // Phần Nội dung (Tên, Loại, Rating)
+                              Expanded(
+                                // Chiếm hết không gian còn lại trừ phần bên phải cố định
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      records['nameAnimal'],
+                                      style: const TextStyle(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 4.0),
+                                    Container(
+                                      // Container cho label loại
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6.0, vertical: 2.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors
+                                            .orange[100], // Màu nền nhạt cam
+                                        borderRadius:
+                                            BorderRadius.circular(4.0),
+                                      ),
+                                      child: Text(
+                                        records['AnimalID'],
+                                        style: TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.black), // Màu chữ cam
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    Row(
+                                      // Rating
+                                      children: [
+                                        const Icon(Icons.favorite,
+                                            color: Colors.amber, size: 16),
+                                        const SizedBox(width: 4.0),
+                                        Text(
+                                          '${records["favorcount"]}', // Định dạng rating 1 chữ số thập phân
+                                          style: const TextStyle(
+                                              fontSize: 14.0,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Phần bên phải (Giá, ...)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment
+                                    .end, // Căn chỉnh sang phải
                                 children: [
-                                  const Icon(Icons.favorite, color: Colors.amber, size: 16),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    '${records["favorcount"]}', // Định dạng rating 1 chữ số thập phân
-                                    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Miễn phí', // Định dạng giá
+                                        style: const TextStyle(
+                                            fontSize: 16.0,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(width: 4.0),
+                                      // Icon ba chấm
+                                    ],
                                   ),
+                                  const SizedBox(height: 8.0), // Khoảng cách
                                 ],
                               ),
                             ],
                           ),
                         ),
-
-                        // Phần bên phải (Giá, ...)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end, // Căn chỉnh sang phải
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Miễn phí', // Định dạng giá
-                                  style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(width: 4.0),
-                                // Icon ba chấm
-                              ],
-                            ),
-                            const SizedBox(height: 8.0), // Khoảng cách
-
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                )
+                      )
                     : Container();
               },
             ),
