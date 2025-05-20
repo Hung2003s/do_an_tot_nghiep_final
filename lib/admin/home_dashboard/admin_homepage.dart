@@ -27,7 +27,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
   );
 
   late Future<AggregateQuerySnapshot> _totalLikesFuture;
-  late Future<AggregateQuerySnapshot> _ModelFuture;//hàm truy vấn tổng hợp
+  //hàm truy vấn tổng hợp
 
   VoidCallback? onDelete; // Callback khi nút Xóa được bấm
   VoidCallback? onCancelOrDone; // Callback khi nút Hủy/Done được bấm
@@ -49,7 +49,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
     // TODO: implement initState
     super.initState();
     _totalLikesFuture = _fetchTotalLikes();
-    _ModelFuture = _fetchdModelCount();
+
   }
 
   void _showMyModalBottomSheet() {
@@ -114,12 +114,15 @@ class _AdminHomepageState extends State<AdminHomepage> {
         .get();
   }
   Future<AggregateQuerySnapshot> _fetchdModelCount() async {
-    return await FirebaseFirestore.instance
+    return  await FirebaseFirestore.instance
         .collection('animalDB')
-        .aggregate(count())
+        .count()
         .get();
   }
-
+  void printcount() async {
+    final snapshot = await _fetchdModelCount();
+    print('Số lượng documents: ${snapshot.count}');
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -226,7 +229,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: FutureBuilder<AggregateQuerySnapshot>(
-                  future:_ModelFuture,
+                  future:_fetchdModelCount(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       // Đang trong quá trình fetch dữ liệu
@@ -236,15 +239,13 @@ class _AdminHomepageState extends State<AdminHomepage> {
                       return Text('Lỗi: ${snapshot.error}');
                     } else if (snapshot.hasData) {
                       // Dữ liệu đã fetch thành công
-                      final modelcount = snapshot.data!;
                       // Lấy giá trị tổng lượt thích từ kết quả truy vấn tổng hợp
                       // Sử dụng .getSum('likes') với tên trường đã dùng trong sum()
-                      final modelcounts = modelcount;
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${modelcount}',
+                            '${snapshot.data?.count}',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
     return const GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Animal App',
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }

@@ -2,12 +2,9 @@ import 'package:animal_2/admin/home_dashboard/admin_homepage.dart';
 import 'package:animal_2/admin/notification/notification_screen.dart';
 import 'package:flutter/material.dart';
 
-
 import '../add_animal/add_animal_screen.dart';
 import '../list_product/list_animal_screen.dart';
 import '../personal_info_menu/personal_info_screen.dart'; // Import nếu dùng SfCartesianChart
-
-
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -26,7 +23,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     NotificationScreen(),
     RevenueScreen(),
   ];
-
 
   @override
   void initState() {
@@ -79,7 +75,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
       // Floating Action Button (for the centered plus icon)
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_)=> AddAnimalScreen()));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => AddAnimalScreen()));
         },
         backgroundColor: Colors.orange,
         shape: CircleBorder(),
@@ -88,15 +85,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
         // Màu nút '+'
         child: Icon(Icons.add, color: Colors.white, size: 30),
       ),
-      floatingActionButtonLocation:
-      FloatingActionButtonLocation
+      floatingActionButtonLocation: FloatingActionButtonLocation
           .centerDocked, // Đặt nút '+' ở giữa BottomAppBar
     );
   }
 
   // --- Widget cho từng phần ---
-
-
 
   Widget _buildBottomNavigationBar() {
     return Container(
@@ -121,8 +115,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             children: <Widget>[
               IconButton(
                 icon: Icon(Icons.grid_view),
-                onPressed:
-                    () {
+                onPressed: () {
                   setState(() {
                     _selectedIndex = 0; // Cập nhật chỉ mục
                   });
@@ -149,7 +142,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 color: _selectedIndex == 2 ? Colors.orange : Colors.grey[700],
               ),
               IconButton(
-                icon: Icon(Icons.person_outline),
+                icon: Icon(Icons.settings),
                 onPressed: () {
                   setState(() {
                     _selectedIndex = 3; // Cập nhật chỉ mục
