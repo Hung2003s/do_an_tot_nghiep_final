@@ -26,6 +26,8 @@ class _EditTipScreenState extends State<EditTipScreen> {
   late final TextEditingController _tipIdController; // Quản lý ID của tip
   late final TextEditingController
       _animalIdController; // Quản lý ID của động vật
+  late final TextEditingController _animalNameController =
+      TextEditingController(); // Quản lý tên động vật
 
   // Các biến trạng thái
   bool _isLoading = false; // Trạng thái đang tải
@@ -46,8 +48,20 @@ class _EditTipScreenState extends State<EditTipScreen> {
     _animalIdController =
         TextEditingController(text: widget.tipData['AnimalID'].toString());
     _selectedAnimalId = widget.tipData['AnimalID'] as int;
-    _selectedAnimalName = widget.tipData['tên động vật'];
-    _loadAnimals(); // Tải danh sách động vật
+    _loadAnimals().then((_) {
+      // Sau khi tải danh sách động vật, tìm và set tên động vật tương ứng
+      final selectedAnimal = _animalsList.firstWhere(
+        (animal) => animal['AnimalID'] == _selectedAnimalId,
+        orElse: () => {'nameAnimal': 'Không tìm thấy'},
+      );
+      setState(() {
+        _selectedAnimalName = selectedAnimal['nameAnimal'];
+        _animalNameController.text = _selectedAnimalName ?? '';
+      });
+      // Thêm log để kiểm tra tên động vật đã chọn
+      print('DEBUG: _selectedAnimalId = $_selectedAnimalId');
+      print('DEBUG: _selectedAnimalName = $_selectedAnimalName');
+    });
   }
 
   // Hàm tải danh sách động vật từ database
@@ -65,6 +79,12 @@ class _EditTipScreenState extends State<EditTipScreen> {
                 })
             .toList();
       });
+      // Thêm log để kiểm tra danh sách động vật
+      print('DEBUG: _animalsList = \n');
+      for (var animal in _animalsList) {
+        print(
+            'AnimalID: ${animal['AnimalID']}, nameAnimal: ${animal['nameAnimal']}');
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -82,6 +102,7 @@ class _EditTipScreenState extends State<EditTipScreen> {
     _imageUrlController.dispose();
     _tipIdController.dispose();
     _animalIdController.dispose();
+    _animalNameController.dispose();
     super.dispose();
   }
 
@@ -99,7 +120,7 @@ class _EditTipScreenState extends State<EditTipScreen> {
             .doc(widget.tipId)
             .update({
           'tên động vật': _selectedAnimalName,
-          'content': _contentController.text,
+          'tip': _contentController.text,
           'imageUrl': _imageUrlController.text,
           'TipID': widget.tipData['TipID'],
           'AnimalID': _selectedAnimalId,
@@ -186,6 +207,7 @@ class _EditTipScreenState extends State<EditTipScreen> {
                         );
                         _selectedAnimalName = selectedAnimal['nameAnimal'];
                         _animalIdController.text = newValue.toString();
+                        _animalNameController.text = _selectedAnimalName ?? '';
                       });
                     }
                   },
@@ -199,7 +221,7 @@ class _EditTipScreenState extends State<EditTipScreen> {
               else
                 // Hiển thị tên động vật (khi không chỉnh sửa)
                 TextFormField(
-                  initialValue: _selectedAnimalName,
+                  controller: _animalNameController,
                   decoration: const InputDecoration(
                     labelText: 'Tên động vật',
                     border: OutlineInputBorder(),
@@ -291,13 +313,14 @@ class _EditTipScreenState extends State<EditTipScreen> {
                     setState(() {
                       _isEditing = false;
                       // Khôi phục lại giá trị ban đầu
-                      _contentController.text = widget.tipData['content'];
+                      _contentController.text = widget.tipData['tip'];
                       _imageUrlController.text = widget.tipData['imageUrl'];
                       _tipIdController.text = widget.tipData['TipID'];
                       _animalIdController.text =
                           widget.tipData['AnimalID'].toString();
                       _selectedAnimalId = widget.tipData['AnimalID'] as int;
                       _selectedAnimalName = widget.tipData['tên động vật'];
+                      _animalNameController.text = _selectedAnimalName ?? '';
                     });
                   },
                   style: OutlinedButton.styleFrom(
