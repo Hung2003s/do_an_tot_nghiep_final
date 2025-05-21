@@ -1,56 +1,74 @@
 import 'package:flutter/material.dart';
-// Import model User
+import '../../model/user.dart';
 
 class UserListItem extends StatelessWidget {
-
-  final Widget rightWidget; // Widget hiển thị ở bên phải (trạng thái, nút xóa, v.v.)
+  final User user;
+  final Widget rightWidget;
 
   const UserListItem({
     Key? key,
-    required this.rightWidget, // Yêu cầu widget bên phải
+    required this.user,
+    required this.rightWidget,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding dọc
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.grey[300]!, width: 1.0), // Đường phân cách
+          bottom: BorderSide(color: Colors.grey[300]!, width: 1.0),
         ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center, // Căn giữa các mục theo chiều dọc
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Placeholder Avatar tròn
           CircleAvatar(
             radius: 24,
-            backgroundColor: Colors.grey[300], // Màu placeholder
-            // backgroundImage: NetworkImage(user.avatarUrl), // Ảnh thật nếu có URL
+            backgroundColor: Colors.grey[300],
+            backgroundImage:
+                user.avatarUrl.isNotEmpty ? NetworkImage(user.avatarUrl) : null,
+            child: user.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
           ),
-          const SizedBox(width: 16.0), // Khoảng cách
-
-          // Tên và User ID
-          Expanded( // Chiếm hết không gian còn lại trừ phần bên phải
+          const SizedBox(width: 16.0),
+          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // Căn trái
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'name',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                  user.firstName + ' ' + user.lastName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
                 ),
                 const SizedBox(height: 2.0),
                 Text(
-                  'UserId: 02',
-                  style: TextStyle(color: Colors.grey[700], fontSize: 14.0),
+                  'SĐT: ' + user.parentNumber,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14.0,
+                  ),
+                ),
+                Text(
+                  'Email: ' + user.parentEmail,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14.0,
+                  ),
+                ),
+                Text(
+                  'Giới tính: ' + user.gender,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14.0,
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16.0), // Khoảng cách
-
-          // Widget bên phải (Status hoặc Button)
-          rightWidget, // Hiển thị widget được truyền vào
+          const SizedBox(width: 16.0),
+          rightWidget,
         ],
       ),
     );

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../const/ar_color.dart';
@@ -132,10 +133,10 @@ class _ScreenTipsState extends State<ScreenTips> {
                   children: [
                     Expanded(
                       flex: 1,
-                      child: Image.asset(
-                        _tipsDataList[index]["imageUrl"],
-                        fit: BoxFit.cover,
-                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: _tipsDataList[index]["imageUrl"],
+                              fit: BoxFit.cover,
+                            )
                     ),
                     const SizedBox(width: 12),
                     Expanded(

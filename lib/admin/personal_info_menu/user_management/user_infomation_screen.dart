@@ -18,133 +18,81 @@ class UserInfoScreen extends StatefulWidget {
 
 class _UserInfoScreenState extends State<UserInfoScreen> {
   // Controllers cho Text Input Fields
-  final TextEditingController _middleLastNameController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController(); // Cho Ngày sinh
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _parentNumberController = TextEditingController();
+  final TextEditingController _parentEmailController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _avatarController = TextEditingController();
 
   // Biến trạng thái cho Giới tính
   Gender? _selectedGender; // Lưu giới tính được chọn
 
   // Biến trạng thái để theo dõi chế độ chỉnh sửa
   bool _isEditing = false; // Ban đầu là chế độ xem
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Điền dữ liệu từ user object nếu có (cho màn hình chỉnh sửa)
     if (widget.user != null) {
-      _middleLastNameController.text = widget.user!.middleLastName ?? '';
-      _firstNameController.text = widget.user!.firstName ?? '';
-      _phoneController.text = widget.user!.phoneNumber ?? '';
-      _emailController.text = widget.user!.email ?? '';
+      _firstNameController.text = widget.user!.firstName;
+      _lastNameController.text = widget.user!.lastName;
+      _parentNumberController.text = widget.user!.parentNumber;
+      _parentEmailController.text = widget.user!.parentEmail;
       if (widget.user!.dateOfBirth != null) {
-        _dobController.text = DateFormat('dd/MM/yyyy').format(widget.user!.dateOfBirth!);
+        _dobController.text =
+            DateFormat('dd/MM/yyyy').format(widget.user!.dateOfBirth!);
       }
-      _selectedGender = widget.user!.gender;
+      _avatarController.text = widget.user!.avatarUrl;
+      _selectedGender = widget.user!.gender == 'Nam'
+          ? Gender.male
+          : widget.user!.gender == 'Nữ'
+              ? Gender.female
+              : Gender.unknown;
     }
   }
 
   @override
   void dispose() {
     // Giải phóng controllers
-    _middleLastNameController.dispose();
     _firstNameController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
+    _lastNameController.dispose();
+    _parentNumberController.dispose();
+    _parentEmailController.dispose();
     _dobController.dispose();
+    _avatarController.dispose();
     super.dispose();
   }
 
   // Hàm xử lý khi nút Sửa/Lưu được bấm
   void _toggleEditSave() {
-    if (_isEditing) {
-      // Đang ở chế độ chỉnh sửa, bấm nút Lưu
-      _saveChanges(); // Gọi hàm lưu thay đổi
-    } else {
-      // Đang ở chế độ xem, bấm nút Sửa
-      // Chuyển sang chế độ chỉnh sửa
-      setState(() {
-        _isEditing = true;
-      });
-    }
-  }
-
-  // Hàm lưu thay đổi
-  void _saveChanges() {
-    // TODO: Thu thập dữ liệu từ các trường input và trạng thái
-    final middleLastName = _middleLastNameController.text;
-    final firstName = _firstNameController.text;
-    final phoneNumber = _phoneController.text;
-    final email = _emailController.text;
-    final dobString = _dobController.text;
-    DateTime? dateOfBirth;
-    try {
-      dateOfBirth = DateFormat('dd/MM/yyyy').parse(dobString);
-    } catch (e) {
-      print("Error parsing date: $e");
-      // Xử lý lỗi parse ngày (ví dụ: hiển thị thông báo lỗi cho người dùng)
-    }
-    final gender = _selectedGender;
-
-    // In ra dữ liệu đã thu thập (Để kiểm tra)
-    print('Họ và tên đệm: $middleLastName');
-    print('Tên: $firstName');
-    print('Số điện thoại: $phoneNumber');
-    print('Email: $email');
-    print('Ngày sinh: $dateOfBirth');
-    print('Giới tính: $gender');
-
-    // TODO: Gửi dữ liệu này lên API hoặc lưu vào cơ sở dữ liệu
-
-    // Sau khi lưu xong, chuyển lại về chế độ xem
     setState(() {
-      _isEditing = false;
+      _isEditing = !_isEditing;
     });
-    // TODO: Hiển thị thông báo thành công hoặc lỗi
   }
-
-
-  // Hàm hiển thị Date Picker và chọn ngày
-  Future<void> _selectDate(BuildContext context) async {
-    // Chỉ cho phép chọn ngày khi ở chế độ chỉnh sửa
-    if (!_isEditing) return;
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(), // Ngày bắt đầu mặc định
-      firstDate: DateTime(1900), // Ngày sớm nhất có thể chọn
-      lastDate: DateTime.now(), // Ngày muộn nhất có thể chọn (ví dụ: hôm nay)
-    );
-    if (picked != null) {
-      setState(() {
-        // Cập nhật text trong input field
-        _dobController.text = DateFormat('dd/MM/yyyy').format(picked);
-      });
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
+    if (widget.user == null) {
+      return const Scaffold(
+        body: Center(child: Text('Không tìm thấy thông tin người dùng')),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.pop(context); // Quay lại màn hình trước
-          },
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Quản lý người dùng'), // Hoặc "Thông tin người dùng"
+        title: const Text('Thông tin cá nhân'),
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: _toggleEditSave, // Gọi hàm xử lý Sửa/Lưu
-            child: Text(
-              _isEditing ? 'LƯU' : 'SỬA', // Thay đổi text của nút
-              style: TextStyle(color: _isEditing ? Colors.green : Colors.orange), // Thay đổi màu nút
-            ),
+            onPressed: _toggleEditSave,
+            child: Text(_isEditing ? 'LƯU' : 'SỬA',
+                style: TextStyle(
+                    color: _isEditing ? Colors.green : Colors.orange)),
           ),
         ],
       ),
@@ -153,102 +101,136 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Placeholder Avatar tròn lớn
             CircleAvatar(
               radius: 60,
               backgroundColor: Colors.grey[300],
-              // TODO: Hiển thị ảnh avatar của user nếu có widget.user
+              backgroundImage: _avatarController.text.isNotEmpty
+                  ? NetworkImage(_avatarController.text)
+                  : null,
+              child: _avatarController.text.isEmpty
+                  ? const Icon(Icons.person, size: 50)
+                  : null,
             ),
             const SizedBox(height: 30.0),
-
-            // --- Các trường nhập thông tin ---
-            _buildTextInputField(
-              controller: _middleLastNameController,
-              label: 'Họ và tên đệm',
-              hintText: 'Nguyễn Văn',
-              readOnly: !_isEditing, // Chỉ đọc khi không ở chế độ chỉnh sửa
-            ),
-            const SizedBox(height: 16.0),
             _buildTextInputField(
               controller: _firstNameController,
+              label: 'Họ',
+              hintText: 'Lê',
+              enabled: _isEditing,
+            ),
+            const SizedBox(height: 16.0),
+            _buildTextInputField(
+              controller: _lastNameController,
               label: 'Tên',
-              hintText: 'A',
-              readOnly: !_isEditing, // Chỉ đọc khi không ở chế độ chỉnh sửa
+              hintText: 'Minh',
+              enabled: _isEditing,
             ),
             const SizedBox(height: 16.0),
             _buildTextInputField(
-              controller: _phoneController,
-              label: 'Số điện thoại bố (mẹ)',
+              controller: _parentNumberController,
+              label: 'Số điện thoại phụ huynh',
               hintText: '0123 456 789',
-              keyboardType: TextInputType.phone,
-              readOnly: !_isEditing, // Chỉ đọc khi không ở chế độ chỉnh sửa
+              enabled: _isEditing,
             ),
             const SizedBox(height: 16.0),
             _buildTextInputField(
-              controller: _emailController,
-              label: 'Email bố (mẹ)',
+              controller: _parentEmailController,
+              label: 'Email phụ huynh',
               hintText: 'email@example.com',
-              keyboardType: TextInputType.emailAddress,
-              readOnly: !_isEditing, // Chỉ đọc khi không ở chế độ chỉnh sửa
+              enabled: _isEditing,
             ),
             const SizedBox(height: 16.0),
-
-            // --- Ngày tháng năm sinh và Giới tính ---
+            _buildTextInputField(
+              controller: _avatarController,
+              label: 'Link ảnh đại diện',
+              hintText: 'https://...',
+              enabled: _isEditing,
+            ),
+            const SizedBox(height: 16.0),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Ngày tháng năm sinh
                 Expanded(
                   flex: 2,
                   child: _buildTextInputField(
                     controller: _dobController,
-                    label: 'Ngày tháng năm sinh',
+                    label: 'Ngày sinh',
                     hintText: 'dd/mm/yyyy',
-                    readOnly: true, // Luôn chỉ đọc, mở date picker bằng onTap
-                    onTap: () {
-                      // Chỉ cho phép mở date picker khi ở chế độ chỉnh sửa
-                      if(_isEditing) _selectDate(context);
-                    },
+                    readOnly: true,
                   ),
                 ),
                 const SizedBox(width: 16.0),
-
-                // Giới tính
                 Expanded(
                   flex: 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Giới tính', style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.grey)),
-                      // Radio Buttons chỉ hoạt động khi ở chế độ chỉnh sửa
+                      const Text('Giới tính',
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey)),
                       const SizedBox(height: 8.0),
-                      _buildOptionInput()
+                      Container(
+                        child: DropdownButtonFormField<Gender>(
+                          value: _selectedGender,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 0),
+                          ),
+                          icon: const Icon(Icons.arrow_drop_down),
+                          items: const [
+                            DropdownMenuItem(
+                              value: Gender.male,
+                              child: Text('Nam'),
+                            ),
+                            DropdownMenuItem(
+                              value: Gender.female,
+                              child: Text('Nữ'),
+                            ),
+                          ],
+                          onChanged: _isEditing
+                              ? (Gender? newValue) {
+                                  setState(() {
+                                    _selectedGender = newValue;
+                                  });
+                                }
+                              : null,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-
-
             const SizedBox(height: 20.0),
-            _isEditing ? Center( // Căn giữa nút
-              child: ElevatedButton(
-                onPressed: _saveChanges, // Gọi hàm lưu thay đổi
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange, // Màu nền cam
-                  foregroundColor: Colors.white, // Màu chữ trắng
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 15.0), // Padding nút
-                  shape: RoundedRectangleBorder( // Bo tròn góc
-                    borderRadius: BorderRadius.circular(8.0),
+            if (_isEditing)
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40.0, vertical: 15.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    minimumSize: const Size(double.infinity, 50),
                   ),
-                  minimumSize: Size(double.infinity, 50), // Chiếm hết chiều rộng và chiều cao tối thiểu
-                ),
-                child: const Text(
-                  'LƯU THAY ĐỔI',
-                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                  child: const Text(
+                    'LƯU THAY ĐỔI',
+                    style:
+                        TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ) : Container(),
             const SizedBox(height: 16.0),
           ],
         ),
@@ -261,20 +243,22 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     required TextEditingController controller,
     required String label,
     String? hintText,
-    TextInputType? keyboardType,
-    bool readOnly = false, // Default readOnly is false
-    VoidCallback? onTap,
+    bool readOnly = false,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.grey)),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 14.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey)),
         const SizedBox(height: 8.0),
         TextFormField(
           controller: controller,
-          keyboardType: keyboardType,
-          readOnly: readOnly, // Sử dụng giá trị readOnly được truyền vào
-          onTap: onTap,
+          readOnly: readOnly,
+          enabled: enabled,
           decoration: InputDecoration(
             hintText: hintText,
             border: OutlineInputBorder(
@@ -282,45 +266,17 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               borderSide: BorderSide.none,
             ),
             filled: true,
-            fillColor: _isEditing ? Color(0xffd5d5d5) : Color(0xffb0f7ff),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+            fillColor: Colors.grey[200],
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
           ),
         ),
       ],
     );
   }
-Widget _buildOptionInput() {
-    return DropdownButtonFormField<Gender>(
-       value: _selectedGender,
-        decoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: _isEditing ? Color(0xffd5d5d5) : Color(0xffb0f7ff),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-        ),
-        icon: const Icon(Icons.arrow_drop_down),
-        items: const [
-          DropdownMenuItem(
-            value: Gender.male,
-            child: Text('Nam'),
-          ),
-          DropdownMenuItem(
-            value: Gender.female,
-            child: Text('Nữ'),
-          ),
-        ],
-        onChanged: _isEditing ? (Gender? newValue) {
-         setState(() {
-           _selectedGender = newValue;
-         });
-        } : null,
-    );
-}
-// TODO: Implement hàm build Bottom Navigation Bar (tái sử dụng từ màn hình trước)
-// Widget _buildBottomNavigationBar() {
-//   return BottomAppBar(...);
-// }
+
+  // TODO: Implement hàm build Bottom Navigation Bar (tái sử dụng từ màn hình trước)
+  // Widget _buildBottomNavigationBar() {
+  //   return BottomAppBar(...);
+  // }
 }

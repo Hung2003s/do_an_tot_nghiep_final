@@ -1,26 +1,47 @@
-// user.dart (Cập nhật model nếu cần)
-enum Gender { male, female, unknown } // Thêm enum cho Giới tính
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+// user.dart (Cập nhật model cho đúng với Firestore)
+enum Gender { male, female, unknown }
 
 class User {
-  final String name; // Có thể giữ lại name chung hoặc tách thành firstName, lastName
-  final String userId;
-  final String avatarUrl; // Hoặc placeholder type
-  final String? middleLastName; // Họ và tên đệm
-  final String? firstName; // Tên
-  final String? phoneNumber;
-  final String? email;
-  final DateTime? dateOfBirth;
-  final Gender? gender; // Sử dụng enum Gender
+  final String docId; // Document ID trong Firestore
+  final String userId; // UserID trong Firestore
+  final String firstName; // FirstName
+  final String lastName; // LastName
+  final String gender; // Gender (Nam/Nữ)
+  final DateTime? dateOfBirth; // DateofBirth
+  final String parentEmail; // ParentEmail
+  final String parentNumber; // ParentNumber
+  final String avatarUrl; // avatar
 
   User({
-    required this.name, // Giữ lại nếu cần tên đầy đủ
+    required this.docId,
     required this.userId,
+    required this.firstName,
+    required this.lastName,
+    required this.gender,
+    required this.dateOfBirth,
+    required this.parentEmail,
+    required this.parentNumber,
     required this.avatarUrl,
-    this.middleLastName,
-    this.firstName,
-    this.phoneNumber,
-    this.email,
-    this.dateOfBirth,
-    this.gender,
   });
+
+  // Hàm tạo User từ Firestore document
+  factory User.fromFirestore(String id, Map<String, dynamic> data) {
+    return User(
+      docId: id,
+      userId: data['UserID'].toString(),
+      firstName: data['FirstName'] ?? '',
+      lastName: data['LastName'] ?? '',
+      gender: data['Gender'] ?? '',
+      dateOfBirth: data['DateofBirth'] != null
+          ? (data['DateofBirth'] is Timestamp
+              ? (data['DateofBirth'] as Timestamp).toDate()
+              : data['DateofBirth'] as DateTime)
+          : null,
+      parentEmail: data['ParentEmail'] ?? '',
+      parentNumber: data['ParentNumber'] ?? '',
+      avatarUrl: data['avatar'] ?? '',
+    );
+  }
 }

@@ -107,7 +107,7 @@ class _AddTipScreenState extends State<AddTipScreen> {
             .collection('tipsDB')
             .doc(newTipId)
             .set({
-          'tên động vật': _selectedAnimalName,
+          //'tên động vật': _selectedAnimalName,
           'tip': _contentController.text.trim(),
           'imageUrl': _imageUrlController.text.trim(),
           'AnimalID': _selectedAnimalId,

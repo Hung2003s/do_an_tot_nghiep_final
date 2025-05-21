@@ -158,7 +158,7 @@ class _TipScreenState extends State<TipScreen> {
                             MaterialPageRoute(
                               builder: (context) => EditTipScreen(
                                 tipData: tipData,
-                                tipId: tipData['TipID'],
+                                TipId: doc.id,
                               ),
                             ),
                           );
@@ -183,10 +183,19 @@ class _TipScreenState extends State<TipScreen> {
                               children: [
                                 Expanded(
                                   flex: 1,
-                                  child: Image.asset(
-                                    tipData["imageUrl"],
-                                    fit: BoxFit.cover,
-                                  ),
+                                  child: (tipData["imageUrl"] != null &&
+                                          tipData["imageUrl"]
+                                              .toString()
+                                              .startsWith('http'))
+                                      ? Image.network(
+                                          tipData["imageUrl"],
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.asset(
+                                          tipData["imageUrl"] ??
+                                              'assets/placeholder.png',
+                                          fit: BoxFit.cover,
+                                        ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(

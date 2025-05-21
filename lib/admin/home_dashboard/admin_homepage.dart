@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -49,7 +50,6 @@ class _AdminHomepageState extends State<AdminHomepage> {
     // TODO: implement initState
     super.initState();
     _totalLikesFuture = _fetchTotalLikes();
-
   }
 
   void _showMyModalBottomSheet() {
@@ -113,16 +113,26 @@ class _AdminHomepageState extends State<AdminHomepage> {
         .aggregate(sum('favorcount'))
         .get();
   }
+
   Future<AggregateQuerySnapshot> _fetchdModelCount() async {
-    return  await FirebaseFirestore.instance
+    return await FirebaseFirestore.instance
         .collection('animalDB')
         .count()
         .get();
   }
+
   void printcount() async {
     final snapshot = await _fetchdModelCount();
     print('Số lượng documents: ${snapshot.count}');
   }
+
+  // Thêm hàm lấy tổng số user từ Firestore
+  Future<int> _fetchUserCount() async {
+    final snapshot =
+        await FirebaseFirestore.instance.collection('user').count().get();
+    return snapshot.count ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,7 +239,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: FutureBuilder<AggregateQuerySnapshot>(
-                  future:_fetchdModelCount(),
+                  future: _fetchdModelCount(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       // Đang trong quá trình fetch dữ liệu
@@ -253,7 +263,8 @@ class _AdminHomepageState extends State<AdminHomepage> {
                           ),
                           Text(
                             'MÔ HÌNH HIỆN CÓ',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey[600]),
                           ),
                         ],
                       );
@@ -275,18 +286,33 @@ class _AdminHomepageState extends State<AdminHomepage> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '05',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'NGƯỜI DÙNG ĐANG KY',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
+              child: FutureBuilder<int>(
+                future: _fetchUserCount(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Lỗi: \\${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${snapshot.data}',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'NGƯỜI DÙNG ĐĂNG KÝ',
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const Text('Không có dữ liệu');
+                  }
+                },
               ),
             ),
           ),
@@ -560,16 +586,14 @@ class _AdminHomepageState extends State<AdminHomepage> {
                             // Sử dụng OutlinedButton cho nút có viền
                             onPressed: onCancelOrDone, // Gán callback
                             style: OutlinedButton.styleFrom(
-                              foregroundColor:
-                                  isDoneState
-                                      ? Colors.redAccent
-                                      : Colors.redAccent,
+                              foregroundColor: isDoneState
+                                  ? Colors.redAccent
+                                  : Colors.redAccent,
                               // Màu chữ nút Hủy/Cancel (màu đỏ nhạt)
                               side: BorderSide(
-                                color:
-                                    isDoneState
-                                        ? Colors.redAccent
-                                        : Colors.redAccent,
+                                color: isDoneState
+                                    ? Colors.redAccent
+                                    : Colors.redAccent,
                                 width: 1.0,
                               ),
                               // Màu viền
@@ -633,8 +657,10 @@ class _AdminHomepageState extends State<AdminHomepage> {
                     // Sử dụng .getSum('likes') với tên trường đã dùng trong sum()
                     final totalLikes = totalLikesSnapshot.getSum('favorcount');
                     return Text(
-                      totalLikes?.toInt().toString() ?? 'không có dữ liệu', // Giá trị rating
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      totalLikes?.toInt().toString() ??
+                          'không có dữ liệu', // Giá trị rating
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     );
                   } else {
                     return const Text('Không có dữ liệu tổng lượt thích');
@@ -690,7 +716,6 @@ class _AdminHomepageState extends State<AdminHomepage> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {}
         if (snapshot.hasData) {
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -703,11 +728,9 @@ class _AdminHomepageState extends State<AdminHomepage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Get.to(
-                          () => AnimalListScreen(),
+                      Get.to(() => AnimalListScreen(),
                           curve: Curves.linear,
-                          transition: Transition.rightToLeft
-                      );
+                          transition: Transition.rightToLeft);
                     },
                     child: Text(
                       'Xem tất cả',
@@ -743,30 +766,33 @@ class _AdminHomepageState extends State<AdminHomepage> {
                             String idname = records["idName"];
                             return (idname == idName)
                                 ? GestureDetector(
-                              onTap: () {
-                                Get.to(
-                                        () => AnimalInfoScreen(
-                                      arguments: records,),
-                                    curve: Curves.linear,
-                                    transition: Transition.rightToLeft);
-                              },
-                                  child: Container(
-                                    margin: EdgeInsets.only(right: 5),
-                                    width: 150,
-                                    // Chiều rộng của mỗi model placeholder
-                                    height: 100,
-                                    // Chiều cao của mỗi model placeholder
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300], // Màu placeholder
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      image: DecorationImage(
-                                        image: AssetImage(records["imageUrl"]),
+                                    onTap: () {
+                                      Get.to(
+                                          () => AnimalInfoScreen(
+                                                arguments: records,
+                                              ),
+                                          curve: Curves.linear,
+                                          transition: Transition.rightToLeft);
+                                    },
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 5),
+                                      width: 150,
+                                      // Chiều rộng của mỗi model placeholder
+                                      height: 100,
+                                      // Chiều cao của mỗi model placeholder
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.grey[300], // Màu placeholder
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+
+                                        // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
                                       ),
-                                      // TODO: Thêm nội dung cho mỗi model (ảnh, tên, v.v.)
+                                      child: CachedNetworkImage(
+                                          imageUrl: records["imageUrl"]),
+                                      // Child: Text('Model Placeholder'), // Ví dụ nội dung
                                     ),
-                                    // Child: Text('Model Placeholder'), // Ví dụ nội dung
-                                  ),
-                                )
+                                  )
                                 : Container();
                           },
                         ),

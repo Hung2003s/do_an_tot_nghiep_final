@@ -3,12 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Widget để chỉnh sửa thông tin của một tip
 class EditTipScreen extends StatefulWidget {
-  final String tipId; // ID của tip cần chỉnh sửa
+  final String TipId; // ID của tip cần chỉnh sửa
   final Map<String, dynamic> tipData; // Dữ liệu của tip
 
   const EditTipScreen({
     Key? key,
-    required this.tipId,
+    required this.TipId,
     required this.tipData,
   }) : super(key: key);
 
@@ -48,6 +48,8 @@ class _EditTipScreenState extends State<EditTipScreen> {
     _animalIdController =
         TextEditingController(text: widget.tipData['AnimalID'].toString());
     _selectedAnimalId = widget.tipData['AnimalID'] as int;
+    _selectedAnimalName = widget.tipData['nameAnimal'] ?? '';
+    _animalNameController.text = _selectedAnimalName ?? '';
     _loadAnimals().then((_) {
       // Sau khi tải danh sách động vật, tìm và set tên động vật tương ứng
       final selectedAnimal = _animalsList.firstWhere(
@@ -116,10 +118,10 @@ class _EditTipScreenState extends State<EditTipScreen> {
       try {
         // Cập nhật dữ liệu vào Firestore
         await FirebaseFirestore.instance
-            .collection('tips')
-            .doc(widget.tipId)
+            .collection('tipsDB')
+            .doc(widget.TipId)
             .update({
-          'tên động vật': _selectedAnimalName,
+          // 'tên động vật': _selectedAnimalName,
           'tip': _contentController.text,
           'imageUrl': _imageUrlController.text,
           'TipID': widget.tipData['TipID'],
@@ -135,12 +137,17 @@ class _EditTipScreenState extends State<EditTipScreen> {
           setState(() {
             _isEditing = false;
           });
+          // Quay lại màn hình trước đó sau khi cập nhật thành công
+          Navigator.pop(context, true); // Trả về true để báo hiệu đã cập nhật
         }
       } catch (e) {
         if (mounted) {
-          // Hiển thị thông báo lỗi
+          // Hiển thị thông báo lỗi chi tiết hơn
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Lỗi: ${e.toString()}')),
+            SnackBar(
+              content: Text('Lỗi khi cập nhật tip: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -319,9 +326,25 @@ class _EditTipScreenState extends State<EditTipScreen> {
                       _animalIdController.text =
                           widget.tipData['AnimalID'].toString();
                       _selectedAnimalId = widget.tipData['AnimalID'] as int;
-                      _selectedAnimalName = widget.tipData['tên động vật'];
+                      // Lấy lại tên động vật từ tipData hoặc từ _animalsList nếu bị null/rỗng
+                      _selectedAnimalName = widget.tipData['nameAnimal'];
+                      if (_selectedAnimalName == null ||
+                          _selectedAnimalName!.isEmpty) {
+                        final animal = _animalsList.firstWhere(
+                          (animal) => animal['AnimalID'] == _selectedAnimalId,
+                          orElse: () => {'nameAnimal': ''},
+                        );
+                        _selectedAnimalName = animal['nameAnimal'];
+                      }
                       _animalNameController.text = _selectedAnimalName ?? '';
                     });
+                    // Hiển thị thông báo đã hủy thay đổi
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã hủy thay đổi'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

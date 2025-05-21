@@ -5,11 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
 import '../const/ar_list_color.dart';
-//import '../const/cache/ar_cache_image.dart';
+import '../const/cache/ar_cache_image.dart';
 import '../pages/detail_animal_screen.dart';
 
 class HomeMain extends StatefulWidget {
@@ -306,9 +307,9 @@ class _HomeMainState extends State<HomeMain> {
                                 alignment: Alignment.topCenter,
                                 child: SizedBox(
                                   height: 100,
-                                  child: Image.asset(
-                                      // imageUrl:
-                                      records["imageUrl"]),
+                                  child: CachedNetworkImage(
+                                      imageUrl: records["imageUrl"],
+                                      fit: BoxFit.cover),
                                 )),
                           ],
                         )
