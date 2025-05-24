@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -22,14 +23,17 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
   );
   int _selectedHabitatIndex = -1; // -1 nghĩa là chưa chọn
   int _selectedFoodIndex = -1;
+  int _selectedPeriodIndex = -1;
 
   // Dữ liệu giả định cho các mục phân loại
   final List<Map<String, dynamic>> _habitats = [
     {'icon': Icons.forest, 'label': 'Rừng rậm'},
     {'icon': Icons.grass, 'label': 'Thảo nguyên'},
+    {'icon': Icons.agriculture, 'label': 'Nông trại'},
+    {'icon': Icons.cloud, 'label': 'Bầu trời'},
     {'icon': Icons.water_drop, 'label': 'Nước ngọt'},
     {'icon': Icons.waves, 'label': 'Nước mặn'},
-    // Thêm môi trường sống khác nếu cần
+    // Đã bổ sung đầy đủ các môi trường sống
   ];
 
   final List<Map<String, dynamic>> _foods = [
@@ -38,6 +42,11 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
     {'icon': Icons.fastfood, 'label': 'Ăn Thịt'},
     // Có thể dùng icon khác cho ăn thịt
     // Thêm loại thức ăn khác nếu cần
+  ];
+
+  final List<Map<String, dynamic>> _periods = [
+    {'icon': Icons.history, 'label': 'Tiền sử'},
+    {'icon': Icons.update, 'label': 'Hiện đại'},
   ];
 
   @override
@@ -93,7 +102,8 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                               16.0,
                             ), // Bo tròn góc
                           ),
-                          child: Image.asset(widget.arguments["imageUrl"]),
+                          child: CachedNetworkImage(
+                              imageUrl: widget.arguments["imageUrl"]),
                         ),
                         // Labels phủ lên ảnh
                         Positioned(
@@ -104,7 +114,8 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               _buildOverlaidLabel('category'), // Label thứ nhất
-                              _buildOverlaidLabel(widget.arguments["idName"]), // Label thứ hai
+                              _buildOverlaidLabel(
+                                  widget.arguments["food"]), // Label thứ hai
                             ],
                           ),
                         ),
@@ -318,7 +329,57 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                       ),
                     ),
                     const SizedBox(height: 20.0),
-                    //Khoảng cách
+
+                    // --- Phân loại (Thời Kỳ) ---
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Thời Kỳ',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // TODO: Xử lý khi bấm "Xem Tất Cả" Thời Kỳ
+                          },
+                          child: const Text(
+                            'Xem Tất Cả',
+                            style: TextStyle(
+                              fontSize: 12.0,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      height: 80,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(_periods.length, (index) {
+                            final period = _periods[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 12.0),
+                              child: CircleCategory(
+                                icon: period['icon'],
+                                label: period['label'],
+                                isSelected: _selectedPeriodIndex == index,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedPeriodIndex = index;
+                                  });
+                                },
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20.0),
 
                     // --- Mô tả ---
                     const Text(

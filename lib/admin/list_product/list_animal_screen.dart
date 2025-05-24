@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,8 +24,15 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
       FirebaseFirestore.instance.collection("animalDB");
 
   // Danh sách các danh mục lọc
-  final List<String> _categories = ['All', 'An co', 'An thit', 'Khung Long'];
-  int _selectedCategoryIndex = 0; // Chỉ mục danh mục đang được chọn
+  final List<String> _categories = [
+    'All',
+    'Ăn cỏ',
+    'Ăn thịt',
+    'Trên cạn',
+    'Dưới nước',
+    'Khủng long'
+  ];
+  int _selectedCategoryIndex = 0;
   late String type = "All";
 
   // List<Animal> _filteredAnimals = []; // Danh sách động vật sau khi lọc
@@ -38,20 +46,26 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   // Hàm lọc danh sách động vật theo danh mục
   void _filterAnimals(int index) {
     setState(() {
-      _selectedCategoryIndex = index; // Cập nhật chỉ mục danh mục được chọn
+      _selectedCategoryIndex = index;
     });
     switch (_selectedCategoryIndex) {
       case 0:
         type = "All";
         break;
       case 1:
-        type = "anco";
+        type = "Ăn cỏ";
         break;
       case 2:
-        type = "anthit";
+        type = "Ăn thịt";
         break;
       case 3:
         type = "trencan";
+        break;
+      case 4:
+        type = "duoinuoc";
+        break;
+      case 5:
+        type = "tienSu";
         break;
     }
   }
@@ -75,10 +89,43 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
               horizontal: 16.0,
               vertical: 8.0,
             ),
-            child: Text(
-              'Tổng cộng: 20', // Hiển thị tổng số sau khi lọc
-              style: const TextStyle(fontSize: 14.0, color: Colors.grey),
-            ),
+            child: StreamBuilder(
+                stream: data.snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const SizedBox();
+
+                  int totalCount = 0;
+                  for (var doc in snapshot.data!.docs) {
+                    String foodValue = doc["food"] ?? '';
+                    dynamic habitatId = doc["habitat_id"];
+                    String lifePeriod = doc["life_period"] ?? '';
+
+                    bool isPrehistoricAnimal = lifePeriod == "Tiền sử";
+                    bool isLandAnimal = habitatId >= 1 && habitatId <= 4;
+                    bool isWaterAnimal = habitatId == 5 || habitatId == 6;
+
+                    bool shouldCount = _selectedCategoryIndex == 0
+                        ? true
+                        : _selectedCategoryIndex == 1
+                            ? foodValue == "Ăn cỏ"
+                            : _selectedCategoryIndex == 2
+                                ? foodValue == "Ăn thịt"
+                                : _selectedCategoryIndex == 3
+                                    ? isLandAnimal && !isPrehistoricAnimal
+                                    : _selectedCategoryIndex == 4
+                                        ? isWaterAnimal && !isPrehistoricAnimal
+                                        : _selectedCategoryIndex == 5
+                                            ? isPrehistoricAnimal
+                                            : false;
+
+                    if (shouldCount) totalCount++;
+                  }
+
+                  return Text(
+                    'Tổng cộng: $totalCount',
+                    style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+                  );
+                }),
           ),
 
           // Danh sách động vật (cuộn được và chiếm hết không gian còn lại)
@@ -157,7 +204,6 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              // Padding ngang cho ListView
               child: ListView.builder(
                 scrollDirection: Axis.vertical,
                 physics: const BouncingScrollPhysics(
@@ -167,249 +213,136 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                 itemCount: snapshot.data?.docs.length,
                 itemBuilder: (context, index) {
                   final DocumentSnapshot records = snapshot.data!.docs[index];
-                  String idname = records["AnimalID"];
-                  return (_selectedCategoryIndex == 0)
-                      ? GestureDetector(
-                          onTap: () {
-                            Get.to(
-                                () => AnimalInfoScreen(
-                                      arguments: records,
-                                    ),
-                                curve: Curves.linear,
-                                transition: Transition.rightToLeft);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12.0), // Padding dọc cho mỗi item
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                    color: Colors.grey[300]!,
-                                    width: 1.0), // Đường phân cách mỏng
+                  String foodValue = records["food"] ?? '';
+                  dynamic habitatId = records["habitat_id"];
+                  String lifePeriod = records["life_period"] ?? '';
+
+                  bool isLandAnimal = habitatId >= 1 && habitatId <= 4;
+                  bool isWaterAnimal = habitatId == 5 || habitatId == 6;
+                  bool isFarmAnimal = habitatId == 7;
+                  bool isSkyAnimal = habitatId == 8;
+                  bool isPrehistoricAnimal = lifePeriod == "Tiền sử";
+
+                  bool shouldShow = _selectedCategoryIndex == 0
+                      ? true
+                      : _selectedCategoryIndex == 1
+                          ? foodValue == "Ăn cỏ"
+                          : _selectedCategoryIndex == 2
+                              ? foodValue == "Ăn thịt"
+                              : _selectedCategoryIndex == 3
+                                  ? (isLandAnimal ||
+                                          isFarmAnimal ||
+                                          isSkyAnimal) &&
+                                      !isPrehistoricAnimal
+                                  : _selectedCategoryIndex == 4
+                                      ? isWaterAnimal && !isPrehistoricAnimal
+                                      : _selectedCategoryIndex == 5
+                                          ? isPrehistoricAnimal
+                                          : false;
+
+                  if (!shouldShow) return Container();
+
+                  return GestureDetector(
+                    onTap: () {
+                      Get.to(
+                          () => AnimalInfoScreen(
+                                arguments: records,
                               ),
+                          curve: Curves.linear,
+                          transition: Transition.rightToLeft);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom:
+                              BorderSide(color: Colors.grey[300]!, width: 1.0),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12.0),
                             ),
-                            child: Row(
+                            child: CachedNetworkImage(
+                              imageUrl: records["imageUrl"],
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(width: 16.0),
+                          Expanded(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Placeholder Ảnh/Biểu tượng
+                                Text(
+                                  records['nameAnimal'],
+                                  style: const TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4.0),
                                 Container(
-                                  width: 80,
-                                  height: 80,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6.0, vertical: 2.0),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(
-                                        12.0), // Bo tròn góc
+                                    color: Colors.orange[100],
+                                    borderRadius: BorderRadius.circular(4.0),
                                   ),
-                                  child: Image.asset(
-                                    records["imageUrl"],
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                const SizedBox(width: 16.0), // Khoảng cách
-
-                                // Phần Nội dung (Tên, Loại, Rating)
-                                Expanded(
-                                  // Chiếm hết không gian còn lại trừ phần bên phải cố định
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        records['nameAnimal'],
-                                        style: const TextStyle(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(height: 4.0),
-                                      Container(
-                                        // Container cho label loại
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 6.0, vertical: 2.0),
-                                        decoration: BoxDecoration(
-                                          color: Colors
-                                              .orange[100], // Màu nền nhạt cam
-                                          borderRadius:
-                                              BorderRadius.circular(4.0),
-                                        ),
-                                        child: Text(
-                                          records['AnimalID'],
-                                          style: TextStyle(
-                                              fontSize: 12.0,
-                                              color: Colors
-                                                  .orange[700]), // Màu chữ cam
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8.0),
-                                      Row(
-                                        // Rating
-                                        children: [
-                                          const Icon(Icons.favorite,
-                                              color: Colors.amber, size: 16),
-                                          const SizedBox(width: 4.0),
-                                          Text(
-                                            '${records["favorcount"]}', // Định dạng rating 1 chữ số thập phân
-                                            style: const TextStyle(
-                                                fontSize: 14.0,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                  child: Text(
+                                    records['AnimalID'].toString(),
+                                    style: TextStyle(
+                                        fontSize: 12.0,
+                                        color: Colors.orange[700]),
                                   ),
                                 ),
-
-                                // Phần bên phải (Giá, ...)
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment
-                                      .end, // Căn chỉnh sang phải
+                                const SizedBox(height: 8.0),
+                                Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Miễn phí', // Định dạng giá
-                                          style: const TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        const SizedBox(width: 4.0),
-                                        // Icon ba chấm
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8.0), // Khoảng cách
-                                    const Text(
-                                      'Có sẵn', // Text "Pick UP"
-                                      style: TextStyle(
-                                          fontSize: 12.0, color: Colors.grey),
+                                    const Icon(Icons.favorite,
+                                        color: Colors.amber, size: 16),
+                                    const SizedBox(width: 4.0),
+                                    Text(
+                                      '${records["favorcount"]}',
+                                      style: const TextStyle(
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
                           ),
-                        )
-                      : (idname == type)
-                          ? GestureDetector(
-                              onTap: () {
-                                Get.to(
-                                    () => AnimalInfoScreen(
-                                          arguments: records,
-                                        ),
-                                    curve: Curves.linear,
-                                    transition: Transition.rightToLeft);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12.0), // Padding dọc cho mỗi item
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                        color: Colors.grey[300]!,
-                                        width: 1.0), // Đường phân cách mỏng
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Miễn phí',
+                                    style: const TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Placeholder Ảnh/Biểu tượng
-                                    Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(
-                                            12.0), // Bo tròn góc
-                                      ),
-                                      child: Image.asset(
-                                        records["imageUrl"],
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16.0), // Khoảng cách
-
-                                    // Phần Nội dung (Tên, Loại, Rating)
-                                    Expanded(
-                                      // Chiếm hết không gian còn lại trừ phần bên phải cố định
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            records['nameAnimal'],
-                                            style: const TextStyle(
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          const SizedBox(height: 4.0),
-                                          Container(
-                                            // Container cho label loại
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 6.0, vertical: 2.0),
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange[
-                                                  100], // Màu nền nhạt cam
-                                              borderRadius:
-                                                  BorderRadius.circular(4.0),
-                                            ),
-                                            child: Text(
-                                              records['AnimalID'],
-                                              style: TextStyle(
-                                                  fontSize: 12.0,
-                                                  color: Colors.orange[
-                                                      700]), // Màu chữ cam
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8.0),
-                                          Row(
-                                            // Rating
-                                            children: [
-                                              const Icon(Icons.favorite,
-                                                  color: Colors.amber,
-                                                  size: 16),
-                                              const SizedBox(width: 4.0),
-                                              Text(
-                                                '${records["favorcount"]}', // Định dạng rating 1 chữ số thập phân
-                                                style: const TextStyle(
-                                                    fontSize: 14.0,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // Phần bên phải (Giá, ...)
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .end, // Căn chỉnh sang phải
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'Miễn phí', // Định dạng giá
-                                              style: const TextStyle(
-                                                  fontSize: 16.0,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            const SizedBox(width: 4.0),
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                            height: 8.0), // Khoảng cách
-                                        const Text(
-                                          'có sẵn', // Text "Pick UP"
-                                          style: TextStyle(
-                                              fontSize: 12.0,
-                                              color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                  const SizedBox(width: 4.0),
+                                ],
                               ),
-                            )
-                          : Container(); // Sử dụng widget item
+                              const SizedBox(height: 8.0),
+                              const Text(
+                                'Có sẵn',
+                                style: TextStyle(
+                                    fontSize: 12.0, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 },
               ),
             ),

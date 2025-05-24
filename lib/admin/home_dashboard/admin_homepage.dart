@@ -163,7 +163,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
                     // SizedBox(height: 20),
 
                     // Popular Models Section
-                    _buildPopularModelsSection(context, "trencan"),
+                    _buildPopularModelsSection(context, "Ăn cỏ"),
                     SizedBox(height: 20),
                   ],
                 ),
@@ -710,7 +710,7 @@ class _AdminHomepageState extends State<AdminHomepage> {
   //   );
   // }
 
-  Widget _buildPopularModelsSection(BuildContext context, String idName) {
+  Widget _buildPopularModelsSection(BuildContext context, String food) {
     return StreamBuilder(
       stream: data.snapshots(),
       builder: (context, snapshot) {
@@ -763,8 +763,8 @@ class _AdminHomepageState extends State<AdminHomepage> {
                           itemBuilder: (context, index) {
                             final DocumentSnapshot records =
                                 snapshot.data!.docs[index];
-                            String idname = records["idName"];
-                            return (idname == idName)
+                            String foodValue = records["food"];
+                            return (foodValue == food)
                                 ? GestureDetector(
                                     onTap: () {
                                       Get.to(

@@ -28,6 +28,25 @@ class HomeMain extends StatefulWidget {
 class _HomeMainState extends State<HomeMain> {
   final CollectionReference data =
       FirebaseFirestore.instance.collection("animalDB");
+  final CollectionReference habitatsData =
+      FirebaseFirestore.instance.collection("habitats");
+
+  Future<String> getHabitatName(dynamic habitatId) async {
+    try {
+      if (habitatId == null || habitatId == 0) {
+        return '';
+      }
+      String habitatIdStr = "habitat${habitatId.toString()}";
+      DocumentSnapshot habitatDoc = await habitatsData.doc(habitatIdStr).get();
+      if (habitatDoc.exists) {
+        Map<String, dynamic> data = habitatDoc.data() as Map<String, dynamic>;
+        return data['habitat_name'] ?? '';
+      }
+      return '';
+    } catch (e) {
+      return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +95,8 @@ class _HomeMainState extends State<HomeMain> {
                                                 0.35,
                                         width:
                                             MediaQuery.of(context).size.width,
-                                        child:
-                                            _buildListView(snapshot, "anco")),
+                                        child: _buildListView(snapshot, "Ăn cỏ",
+                                            isFoodFilter: true)),
                                     // const SizedBox(height: 20),
                                     _buildNoidung('Động vật ăn thịt'),
                                     SizedBox(
@@ -86,8 +105,9 @@ class _HomeMainState extends State<HomeMain> {
                                                 0.35,
                                         width:
                                             MediaQuery.of(context).size.width,
-                                        child:
-                                            _buildListView(snapshot, "anthit")),
+                                        child: _buildListView(
+                                            snapshot, "Ăn thịt",
+                                            isFoodFilter: true)),
                                   ],
                                 )
                               : const SizedBox(),
@@ -102,8 +122,7 @@ class _HomeMainState extends State<HomeMain> {
                                         width:
                                             MediaQuery.of(context).size.width,
                                         child: _buildListView(
-                                            snapshot, "nuocman")),
-                                    //const SizedBox(height: 10),
+                                            snapshot, "Nước mặn")),
                                     _buildNoidung('Động vật sống ở nước ngọt'),
                                     SizedBox(
                                         height:
@@ -112,32 +131,51 @@ class _HomeMainState extends State<HomeMain> {
                                         width:
                                             MediaQuery.of(context).size.width,
                                         child: _buildListView(
-                                            snapshot, "nuocngot")),
+                                            snapshot, "Nước ngọt")),
+                                    _buildNoidung('Động vật sống ở rừng rậm'),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.4,
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        child: _buildListView(
+                                            snapshot, "Rừng rậm")),
+                                    _buildNoidung(
+                                        'Động vật sống ở thảo nguyên'),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.4,
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        child: _buildListView(
+                                            snapshot, "Thảo nguyên")),
+                                    _buildNoidung('Động vật sống ở bầu trời'),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.4,
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        child: _buildListView(
+                                            snapshot, "Bầu trời")),
                                   ],
                                 )
                               : const SizedBox(),
                           id == 3
                               ? Column(
                                   children: [
-                                    _buildNoidung('Gia súc'),
+                                    _buildNoidung('Nông trại'),
                                     SizedBox(
                                         height:
                                             MediaQuery.of(context).size.height *
                                                 0.4,
                                         width:
                                             MediaQuery.of(context).size.width,
-                                        child:
-                                            _buildListView(snapshot, "giasuc")),
+                                        child: _buildListView(
+                                            snapshot, "Nông trại")),
                                     // const SizedBox(height: 10),
-                                    _buildNoidung('Gia cầm'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child:
-                                            _buildListView(snapshot, "giacam")),
                                   ],
                                 )
                               : const SizedBox(),
@@ -152,7 +190,8 @@ class _HomeMainState extends State<HomeMain> {
                                         width:
                                             MediaQuery.of(context).size.width,
                                         child: _buildListView(
-                                            snapshot, "trencan")),
+                                            snapshot, "trencan",
+                                            isPrehistoric: true)),
                                     // const SizedBox(height: 10),
                                     _buildNoidung('Khủng long dưới nước'),
                                     SizedBox(
@@ -162,7 +201,8 @@ class _HomeMainState extends State<HomeMain> {
                                         width:
                                             MediaQuery.of(context).size.width,
                                         child: _buildListView(
-                                            snapshot, "duoinuoc")),
+                                            snapshot, "duoinuoc",
+                                            isPrehistoric: true)),
                                   ],
                                 )
                               : const SizedBox(),
@@ -177,7 +217,11 @@ class _HomeMainState extends State<HomeMain> {
   }
 
   ListView _buildListView(
-      AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String idName) {
+      AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String filterValue,
+      {bool isFoodFilter = false, bool isPrehistoric = false}) {
+    if (!snapshot.hasData) {
+      return ListView();
+    }
     return ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(
@@ -189,13 +233,37 @@ class _HomeMainState extends State<HomeMain> {
           final DocumentSnapshot records = snapshot.data!.docs[index];
           Random random = Random();
           var indexRandom = random.nextInt(ColorRamdom.animalColor.length);
-          String idname = records["idName"];
-          int animalID = records["AnimalID"];
-          return (idname == idName
-              // &&
-              // iD == widget.id
-              )
-              ? InkWell(
+          dynamic habitatId = records["habitat_id"];
+          String animalFood = records["food"] ?? '';
+          String lifePeriod = records["life_period"] ?? '';
+
+          bool isPrehistoricAnimal = lifePeriod == "Tiền sử";
+          bool isLandPrehistoric =
+              isPrehistoricAnimal && (habitatId >= 1 && habitatId <= 4);
+          bool isWaterPrehistoric =
+              isPrehistoricAnimal && (habitatId == 5 || habitatId == 6);
+
+          return FutureBuilder<String>(
+              future: getHabitatName(habitatId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox();
+                }
+                if (snapshot.hasError) {
+                  return const SizedBox();
+                }
+                String habitatName = snapshot.data ?? '';
+
+                bool shouldShow = isFoodFilter
+                    ? animalFood == filterValue
+                    : isPrehistoric
+                        ? (filterValue == "trencan" && isLandPrehistoric) ||
+                            (filterValue == "duoinuoc" && isWaterPrehistoric)
+                        : habitatName == filterValue;
+
+                if (!shouldShow) return const SizedBox();
+
+                return InkWell(
                   onTap: () {
                     Get.to(
                         () => DetailAnimalScreen(
@@ -313,13 +381,11 @@ class _HomeMainState extends State<HomeMain> {
                                 )),
                           ],
                         )
-                        // Text(name ?? ""),
-                        // Text(infoAnimal ?? ""),
                       ],
                     ),
                   ),
-                )
-              : const SizedBox();
+                );
+              });
         });
   }
 

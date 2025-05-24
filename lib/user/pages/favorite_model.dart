@@ -63,7 +63,7 @@ class _FavoriteModelScreenState extends State<FavoriteModelScreen> {
     );
   }
 
-  Widget _buildListAnimal(BuildContext context, String idName) {
+  Widget _buildListAnimal(BuildContext context, String food) {
     return StreamBuilder(
       stream: data.snapshots(),
       builder: (context, snapshot) {
@@ -83,8 +83,8 @@ class _FavoriteModelScreenState extends State<FavoriteModelScreen> {
                 var indexRandom =
                     random.nextInt(ColorRamdom.animalColor.length);
                 final DocumentSnapshot records = snapshot.data!.docs[index];
-                String idname = records["AnimalID"];
-                return (idname == idName)
+                String animalID = records["AnimalID"];
+                return (animalID == food)
                     ? GestureDetector(
                         onTap: () {
                           Get.to(

@@ -1,13 +1,13 @@
 import 'dart:io' as io;
 
 // import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:native_ar_viewer/native_ar_viewer.dart';
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
 import '../ui/show_image_3d.dart';
-
 
 class DetailAnimalScreen extends StatefulWidget {
   const DetailAnimalScreen({
@@ -66,7 +66,7 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-           // _launchAR(arguments["3Dimage"]);
+            // _launchAR(arguments["3Dimage"]);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -367,9 +367,8 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
           child: SizedBox(
             width: 250,
             height: 250,
-            child: Image.asset(
-              // imageUrl:
-              arguments["imageUrl"],
+            child: CachedNetworkImage(
+              imageUrl: arguments["imageUrl"],
               fit: BoxFit.fill,
             ),
           ),
@@ -419,13 +418,14 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
                   Container(
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                          image: AssetImage('assets/avt_image/avt_lmh.jpg'),fit: BoxFit.cover
-                      )
-                    ),
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                            image: AssetImage('assets/avt_image/avt_lmh.jpg'),
+                            fit: BoxFit.cover)),
                   ),
-                  SizedBox(height: 10,)
+                  SizedBox(
+                    height: 10,
+                  )
                 ],
               ),
               SizedBox(
@@ -437,58 +437,70 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Color(0xff777777).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10)
-                    ),
+                        color: Color(0xff777777).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Text('Lê Minh Hùng ', style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xff000000),
-                            ),),
+                            Text(
+                              'Lê Minh Hùng ',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xff000000),
+                              ),
+                            ),
                           ],
                         ),
                         Container(
                           width: MediaQuery.of(context).size.width - 122,
                           padding: EdgeInsets.symmetric(horizontal: 4),
-                          child: Text('Toi rat yeu quy loai vat nay,',style: TextStyle(
-                            fontSize: 10
-                          ),),
+                          child: Text(
+                            'Toi rat yeu quy loai vat nay,',
+                            style: TextStyle(fontSize: 10),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 4,),
+                  SizedBox(
+                    height: 4,
+                  ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Text('17:46', style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w400,
-                          color: Color(0xff000000),
-                        ),),
-                        SizedBox(width: 20,),
-                        GestureDetector(
-                            onTap: () {} ,
-                            child: Text('Thích', style: TextStyle(
-                              color: Color(0xff4682be),
-                              fontSize: 9
-                            ),)
+                        Text(
+                          '17:46',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xff000000),
+                          ),
                         ),
-                        SizedBox(width: 20,),
-                        GestureDetector(
-                            onTap: () {} ,
-                            child: Text('Trả lời', style: TextStyle(
-                                color: Color(0xff4682be),
-                                fontSize: 9
-                            ),)
+                        SizedBox(
+                          width: 20,
                         ),
+                        GestureDetector(
+                            onTap: () {},
+                            child: Text(
+                              'Thích',
+                              style: TextStyle(
+                                  color: Color(0xff4682be), fontSize: 9),
+                            )),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        GestureDetector(
+                            onTap: () {},
+                            child: Text(
+                              'Trả lời',
+                              style: TextStyle(
+                                  color: Color(0xff4682be), fontSize: 9),
+                            )),
                       ],
                     ),
                   ),
