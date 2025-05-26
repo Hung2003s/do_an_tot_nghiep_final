@@ -2,7 +2,7 @@ import 'package:animal_2/admin/home_dashboard/admin_homepage.dart';
 import 'package:animal_2/admin/notification/notification_screen.dart';
 import 'package:flutter/material.dart';
 
-import '../add_animal/add_animal_screen.dart';
+import '../manage_animal/add_animal_screen.dart';
 import '../list_product/list_animal_screen.dart';
 import '../personal_info_menu/personal_info_screen.dart'; // Import nếu dùng SfCartesianChart
 

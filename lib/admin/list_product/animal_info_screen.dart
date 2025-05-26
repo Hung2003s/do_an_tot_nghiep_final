@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import '../add_animal/add_animal_item.dart';
+import '../manage_animal/add_animal_item.dart';
 // Import widget CircularCategoryChip
 
 // Import Bottom Navigation Bar components nếu cần
@@ -37,11 +37,9 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
   ];
 
   final List<Map<String, dynamic>> _foods = [
-    {'icon': Icons.grass, 'label': 'Ăn Cỏ'},
-    // Có thể dùng icon khác cho ăn cỏ
-    {'icon': Icons.fastfood, 'label': 'Ăn Thịt'},
-    // Có thể dùng icon khác cho ăn thịt
-    // Thêm loại thức ăn khác nếu cần
+    {'icon': Icons.grass, 'label': 'Ăn cỏ'},
+    {'icon': Icons.fastfood, 'label': 'Ăn thịt'},
+    {'icon': Icons.restaurant, 'label': 'Ăn tạp'},
   ];
 
   final List<Map<String, dynamic>> _periods = [
@@ -49,8 +47,25 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
     {'icon': Icons.update, 'label': 'Hiện đại'},
   ];
 
+  Widget buildPlkhRow(String label, String value) {
+    return Row(
+      children: [
+        Text(
+          "$label: ",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        Text(value),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final plkh = widget.arguments["plkh"] ?? {};
+    final String gioi = plkh["gioi"] ?? "";
+    final String bo = plkh["bo"] ?? "";
+    final String lop = plkh["lop"] ?? "";
+    final String nganh = plkh["nganh"] ?? "";
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -113,7 +128,15 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildOverlaidLabel('category'), // Label thứ nhất
+                              _buildOverlaidLabel(
+                                (widget.arguments["required_vip"] == true)
+                                    ? "Cao cấp"
+                                    : "Miễn phí",
+                                color:
+                                    (widget.arguments["required_vip"] == true)
+                                        ? Colors.amber
+                                        : Colors.grey,
+                              ),
                               _buildOverlaidLabel(
                                   widget.arguments["food"]), // Label thứ hai
                             ],
@@ -218,7 +241,6 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                     ),
                     const SizedBox(height: 8.0),
                     Row(
-                      // Tiêu đề và link "Xem Tất Cả"
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
@@ -229,9 +251,7 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
-                            // TODO: Xử lý khi bấm "Xem Tất Cả" Môi Trường Sống
-                          },
+                          onPressed: () {},
                           child: const Text(
                             'Xem Tất Cả',
                             style: TextStyle(
@@ -242,27 +262,30 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                         ),
                       ],
                     ),
-                    // Danh sách Môi Trường Sống cuộn ngang
                     Container(
-                      // Container giới hạn chiều cao cho danh sách cuộn
-                      height: 80, // Chiều cao ước tính cho hàng icon/text
+                      height: 80,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: List.generate(_habitats.length, (index) {
                             final habitat = _habitats[index];
+                            final animalHabitat =
+                                widget.arguments["habitat_id"];
+                            bool isActive = false;
+                            if (animalHabitat is List) {
+                              isActive = animalHabitat.contains(index + 1);
+                            } else {
+                              isActive = animalHabitat == (index + 1);
+                            }
                             return Padding(
                               padding: const EdgeInsets.only(right: 12.0),
-                              // Khoảng cách giữa các chip
                               child: CircleCategory(
                                 icon: habitat['icon'],
                                 label: habitat['label'],
-                                isSelected: _selectedHabitatIndex == index,
-                                // Kiểm tra trạng thái chọn
+                                isSelected: isActive,
                                 onTap: () {
                                   setState(() {
-                                    _selectedHabitatIndex =
-                                        index; // Cập nhật trạng thái chọn
+                                    _selectedHabitatIndex = index;
                                   });
                                 },
                               ),
@@ -275,7 +298,6 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
 
                     // --- Phân loại (Thức Ăn) ---
                     Row(
-                      // Tiêu đề và link "Xem Tất Cả"
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
@@ -286,9 +308,7 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
-                            // TODO: Xử lý khi bấm "Xem Tất Cả" Thức Ăn
-                          },
+                          onPressed: () {},
                           child: const Text(
                             'Xem Tất Cả',
                             style: TextStyle(
@@ -299,27 +319,24 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                         ),
                       ],
                     ),
-                    // Danh sách Thức Ăn cuộn ngang
                     Container(
-                      // Container giới hạn chiều cao cho danh sách cuộn
-                      height: 80, // Chiều cao ước tính cho hàng icon/text
+                      height: 80,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: List.generate(_foods.length, (index) {
                             final food = _foods[index];
+                            final animalFood = widget.arguments["food"];
+                            bool isActive = animalFood == food['label'];
                             return Padding(
                               padding: const EdgeInsets.only(right: 12.0),
-                              // Khoảng cách giữa các chip
                               child: CircleCategory(
                                 icon: food['icon'],
                                 label: food['label'],
-                                isSelected: _selectedFoodIndex == index,
-                                // Kiểm tra trạng thái chọn
+                                isSelected: isActive,
                                 onTap: () {
                                   setState(() {
-                                    _selectedFoodIndex =
-                                        index; // Cập nhật trạng thái chọn
+                                    _selectedFoodIndex = index;
                                   });
                                 },
                               ),
@@ -342,9 +359,7 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
-                            // TODO: Xử lý khi bấm "Xem Tất Cả" Thời Kỳ
-                          },
+                          onPressed: () {},
                           child: const Text(
                             'Xem Tất Cả',
                             style: TextStyle(
@@ -362,12 +377,15 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                         child: Row(
                           children: List.generate(_periods.length, (index) {
                             final period = _periods[index];
+                            final animalPeriod =
+                                widget.arguments["life_period"];
+                            bool isActive = animalPeriod == period['label'];
                             return Padding(
                               padding: const EdgeInsets.only(right: 12.0),
                               child: CircleCategory(
                                 icon: period['icon'],
                                 label: period['label'],
-                                isSelected: _selectedPeriodIndex == index,
+                                isSelected: isActive,
                                 onTap: () {
                                   setState(() {
                                     _selectedPeriodIndex = index;
@@ -378,6 +396,33 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                           }),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 20.0),
+
+                    // --- Phân loại khoa học ---
+                    Row(
+                      children: [
+                        Expanded(
+                            child: SizedBox(
+                                height: 120,
+                                child: _buildPlkhCard(Icons.public, "Giới",
+                                    gioi, Colors.blue[100]!))),
+                        Expanded(
+                            child: SizedBox(
+                                height: 120,
+                                child: _buildPlkhCard(Icons.account_tree,
+                                    "Ngành", nganh, Colors.green[100]!))),
+                        Expanded(
+                            child: SizedBox(
+                                height: 120,
+                                child: _buildPlkhCard(Icons.class_, "Lớp", lop,
+                                    Colors.purple[100]!))),
+                        Expanded(
+                            child: SizedBox(
+                                height: 120,
+                                child: _buildPlkhCard(Icons.bug_report, "Bộ",
+                                    bo, Colors.orange[100]!))),
+                      ],
                     ),
                     const SizedBox(height: 20.0),
 
@@ -392,7 +437,7 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
                     ),
                     const SizedBox(height: 8.0),
                     Text(
-                      'description',
+                      widget.arguments["infoAnimal"] ?? '',
                       style: TextStyle(fontSize: 14.0, color: Colors.grey[700]),
                     ),
                     const SizedBox(height: 20.0),
@@ -414,16 +459,49 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
   }
 
   // Hàm build widget label phủ lên ảnh
-  Widget _buildOverlaidLabel(String text) {
+  Widget _buildOverlaidLabel(String text, {Color color = Colors.grey}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
       decoration: BoxDecoration(
-        color: Colors.black54, // Nền đen trong suốt
-        borderRadius: BorderRadius.circular(12.0), // Bo tròn góc
+        color: color,
+        borderRadius: BorderRadius.circular(12.0),
       ),
       child: Text(
         text,
         style: const TextStyle(fontSize: 12.0, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildPlkhCard(
+      IconData icon, String label, String value, Color color) {
+    return Container(
+      margin: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 28, color: Colors.black54),
+          const SizedBox(height: 4),
+          Text(label,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          const SizedBox(height: 2),
+          Text(value,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12)),
+        ],
       ),
     );
   }

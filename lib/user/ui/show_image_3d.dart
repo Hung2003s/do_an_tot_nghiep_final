@@ -169,7 +169,6 @@ class _ShowImage3DScreenState extends State<ShowImage3DScreen> {
                   onError: (String error) {
                     debugPrint('model failed to load : $error');
                   },
-
                   controller: controller,
                   src:  widget.image3d,
                 ),

@@ -1,9 +1,12 @@
+import 'package:animal_2/admin/evolution_management/evolution_screen.dart';
 import 'package:animal_2/admin/personal_info_menu/personal_info_item.dart';
 import 'package:animal_2/admin/personal_info_menu/user_management/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:animal_2/admin/tip_management/tip_screen.dart';
+
+import '../../user/pages/evolution_screen.dart';
 
 // Import Bottom Navigation Bar components nếu cần
 // import 'bottom_navigation_bar.dart';
@@ -135,7 +138,9 @@ class RevenueScreen extends StatelessWidget {
                     rightWidget: const Icon(Icons.arrow_forward_ios,
                         size: 16.0, color: Colors.grey), // Mũi tên
                     onTap: () {
-                      // TODO: Điều hướng đến màn hình Cài đặt
+                      Get.to(() => EvolutionScreenAdmin(),
+                          curve: Curves.linear,
+                          transition: Transition.rightToLeft);
                     },
                   ),
                   MenuListItem(
