@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/routes/transitions_type.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import '../../user/const/ar_list_color.dart';
 import '../../user/pages/detail_animal_screen.dart';
@@ -35,7 +36,9 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   int _selectedCategoryIndex = 0;
   late String type = "All";
 
-  // List<Animal> _filteredAnimals = []; // Danh sách động vật sau khi lọc
+  // Thêm biến cho chế độ chọn nhiều
+  final Set<String> _selectedAnimals = {};
+  bool _isSelectionMode = false;
 
   @override
   void initState() {
@@ -74,8 +77,39 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Danh sách động vật'),
-        centerTitle: true, // Căn giữa tiêu đề
+        title: Text(_isSelectionMode
+            ? 'Đã chọn ${_selectedAnimals.length}'
+            : 'Danh sách động vật'),
+        centerTitle: true,
+        actions: [
+          if (_isSelectionMode) ...[
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed:
+                  _selectedAnimals.isEmpty ? null : _showDeleteConfirmation,
+            ),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  _isSelectionMode = false;
+                  _selectedAnimals.clear();
+                });
+              },
+            ),
+          ] else ...[
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _isSelectionMode = true;
+                });
+              },
+              child: const Text('Chọn',
+                  style: TextStyle(
+                      color: Colors.blue, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +162,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                 }),
           ),
 
-          // Danh sách động vật (cuộn được và chiếm hết không gian còn lại)
+          // Danh sách động vật
           _buildListAnimal(context, _selectedCategoryIndex)
         ],
       ),
@@ -142,20 +176,17 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   // Hàm build thanh lọc theo danh mục
   Widget _buildCategoryFilter() {
     return Container(
-      height: 50, // Chiều cao cố định cho thanh lọc
+      height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal, // Cho phép cuộn ngang
+        scrollDirection: Axis.horizontal,
         child: Row(
           children: List.generate(_categories.length, (index) {
             final category = _categories[index];
-            final isSelected = _selectedCategoryIndex ==
-                index; // Kiểm tra xem đây có phải mục được chọn không
+            final isSelected = _selectedCategoryIndex == index;
             return Padding(
               padding: const EdgeInsets.only(right: 16.0),
-              // Khoảng cách giữa các mục lọc
               child: GestureDetector(
-                // Sử dụng GestureDetector để có thể bấm vào
                 onTap: () {
                   _filterAnimals(index);
                 },
@@ -166,21 +197,17 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                       category,
                       style: TextStyle(
                         fontSize: 16.0,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal, // Chữ đậm nếu được chọn
-                        color: isSelected
-                            ? Colors.orange
-                            : Colors.grey[700], // Màu cam nếu được chọn
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? Colors.orange : Colors.grey[700],
                       ),
                     ),
                     const SizedBox(height: 4.0),
-                    if (isSelected) // Hiển thị thanh gạch chân nếu được chọn
+                    if (isSelected)
                       Container(
                         height: 2.0,
                         width: 30.0,
-                        // Chiều rộng thanh gạch chân (có thể điều chỉnh)
-                        color: Colors.orange, // Màu thanh gạch chân
+                        color: Colors.orange,
                       ),
                   ],
                 ),
@@ -216,6 +243,8 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                   String foodValue = records["food"] ?? '';
                   dynamic habitatId = records["habitat_id"];
                   String lifePeriod = records["life_period"] ?? '';
+                  final animalName = records['nameAnimal'] as String;
+                  final isSelected = _selectedAnimals.contains(animalName);
 
                   bool isLandAnimal = habitatId >= 1 && habitatId <= 4;
                   bool isWaterAnimal = habitatId == 5 || habitatId == 6;
@@ -243,14 +272,24 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                   if (!shouldShow) return Container();
 
                   return GestureDetector(
-                    onTap: () {
-                      Get.to(
-                          () => AnimalInfoScreen(
-                                arguments: records,
-                              ),
-                          curve: Curves.linear,
-                          transition: Transition.rightToLeft);
-                    },
+                    onTap: _isSelectionMode
+                        ? () {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedAnimals.remove(animalName);
+                              } else {
+                                _selectedAnimals.add(animalName);
+                              }
+                            });
+                          }
+                        : () {
+                            Get.to(
+                                () => AnimalInfoScreen(
+                                      arguments: records,
+                                    ),
+                                curve: Curves.linear,
+                                transition: Transition.rightToLeft);
+                          },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
                       decoration: BoxDecoration(
@@ -262,6 +301,19 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (_isSelectionMode)
+                            Checkbox(
+                              value: isSelected,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value == true) {
+                                    _selectedAnimals.add(animalName);
+                                  } else {
+                                    _selectedAnimals.remove(animalName);
+                                  }
+                                });
+                              },
+                            ),
                           Container(
                             width: 80,
                             height: 80,
@@ -349,6 +401,127 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
           );
         }
         return Container();
+      },
+    );
+  }
+
+  // Thêm hàm xóa động vật
+  Future<void> _deleteAnimals(List<String> animalNames) async {
+    try {
+      // Hiển thị dialog loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            ),
+          );
+        },
+      );
+
+      // Xóa từng động vật
+      for (final animalName in animalNames) {
+        // Lấy thông tin động vật
+        final docSnapshot = await FirebaseFirestore.instance
+            .collection('animalDB')
+            .doc(animalName)
+            .get();
+
+        if (docSnapshot.exists) {
+          final animalData = docSnapshot.data() as Map<String, dynamic>;
+
+          // Xóa ảnh từ Storage nếu có
+          if (animalData['imageUrl'] != null) {
+            try {
+              final ref =
+                  FirebaseStorage.instance.refFromURL(animalData['imageUrl']);
+              await ref.delete();
+            } catch (e) {
+              print('Error deleting image for $animalName: $e');
+            }
+          }
+
+          // Xóa file 3D từ Storage nếu có
+          if (animalData['3Dimage'] != null) {
+            try {
+              final ref =
+                  FirebaseStorage.instance.refFromURL(animalData['3Dimage']);
+              await ref.delete();
+            } catch (e) {
+              print('Error deleting 3D model for $animalName: $e');
+            }
+          }
+
+          // Xóa document từ Firestore
+          await FirebaseFirestore.instance
+              .collection('animalDB')
+              .doc(animalName)
+              .delete();
+        }
+      }
+
+      // Đóng dialog loading
+      Navigator.of(context).pop();
+
+      // Hiển thị thông báo thành công
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã xóa ${animalNames.length} động vật thành công'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Tắt chế độ chọn nếu đang bật
+      if (_isSelectionMode) {
+        setState(() {
+          _isSelectionMode = false;
+          _selectedAnimals.clear();
+        });
+      }
+    } catch (e) {
+      // Đóng dialog loading
+      Navigator.of(context).pop();
+
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi xóa động vật: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // Thêm hàm hiển thị dialog xác nhận xóa
+  void _showDeleteConfirmation([List<String>? animalNames]) {
+    final namesToDelete = animalNames ?? _selectedAnimals.toList();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Xác nhận xóa'),
+          content: Text(
+            namesToDelete.length == 1
+                ? 'Bạn có chắc chắn muốn xóa động vật này?'
+                : 'Bạn có chắc chắn muốn xóa ${namesToDelete.length} động vật đã chọn?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteAnimals(namesToDelete);
+              },
+              child: Text('Xóa', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
       },
     );
   }

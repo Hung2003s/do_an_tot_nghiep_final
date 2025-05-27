@@ -7,10 +7,13 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path/path.dart' as path;
 // Import widget CategoryChip
 
 class AddAnimalScreen extends StatefulWidget {
-  const AddAnimalScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? animalData;
+
+  const AddAnimalScreen({Key? key, this.animalData}) : super(key: key);
 
   @override
   _AddAnimalScreenState createState() => _AddAnimalScreenState();
@@ -63,6 +66,39 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   String? _imagePath;
 
   bool _isPickingImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animalData != null) {
+      final data = widget.animalData!;
+      _nameController.text = data['nameAnimal'] ?? '';
+      _nameEnController.text = data['nameAnimalEnglish'] ?? '';
+      _descriptionController.text = data['infoAnimal'] ?? '';
+      _kingdomController.text = data['plkh']?['gioi'] ?? '';
+      _phylumController.text = data['plkh']?['nganh'] ?? '';
+      _classController.text = data['plkh']?['lop'] ?? '';
+      _orderController.text = data['plkh']?['bo'] ?? '';
+      _imagePath = data['imageUrl'];
+      _isPremium = data['required_vip'] ?? false;
+      _isFree = !(data['required_vip'] ?? false);
+      // Habitat index (habitat_id là int, index = id - 1)
+      if (data['habitat_id'] != null && data['habitat_id'] is int) {
+        _selectedHabitatIndex = (data['habitat_id'] as int) - 1;
+      }
+      // Food index
+      if (data['food'] != null) {
+        _selectedFoodIndex =
+            _foods.indexWhere((f) => f['value'] == data['food']);
+      }
+      // Period index
+      if (data['life_period'] != null) {
+        _selectedPeriodIndex =
+            _periods.indexWhere((p) => p['value'] == data['life_period']);
+      }
+      // Nếu có 3D model thì gán _glbFileName, _glbFilePath nếu muốn (bổ sung sau)
+    }
+  }
 
   @override
   void dispose() {
@@ -184,9 +220,47 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
       // 1. Upload ảnh nếu có
       String imageUrl = '';
       if (_imagePath != null) {
-        final uploadedUrl = await uploadAnimalImage(_imagePath!);
-        if (uploadedUrl != null) {
-          imageUrl = uploadedUrl;
+        try {
+          final file = File(_imagePath!);
+          if (!await file.exists()) {
+            throw Exception('File không tồn tại');
+          }
+
+          // Kiểm tra kích thước file (giới hạn 10MB)
+          final fileSize = await file.length();
+          if (fileSize > 10 * 1024 * 1024) {
+            throw Exception('Kích thước file quá lớn (tối đa 10MB)');
+          }
+
+          final fileName =
+              '${DateTime.now().millisecondsSinceEpoch}_${path.basename(_imagePath!)}';
+          final ref =
+              FirebaseStorage.instance.ref().child('animal_images/$fileName');
+
+          // Tạo metadata cho file ảnh
+          final metadata = SettableMetadata(
+            contentType: 'image/jpeg',
+            customMetadata: {
+              'uploadedBy': 'admin',
+              'uploadTime': DateTime.now().toIso8601String(),
+            },
+            cacheControl: 'public,max-age=31536000', // Cache for 1 year
+          );
+
+          // Upload file với metadata
+          final uploadTask = await ref.putFile(file, metadata);
+          imageUrl = await uploadTask.ref.getDownloadURL();
+          print('Image uploaded successfully. URL: $imageUrl'); // Debug log
+        } catch (e) {
+          print('Error uploading image: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Lỗi khi upload ảnh: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          Navigator.of(context).pop(); // Đóng dialog loading
+          return;
         }
       }
 
@@ -254,6 +328,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.any,
+        allowMultiple: false,
       );
 
       if (result != null) {
@@ -268,9 +343,13 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
           _glbFileName = fileName;
           _glbFilePath = result.files.single.path;
         });
+        print('Selected GLB file path: $_glbFilePath'); // Debug log
       }
     } catch (e) {
       print('Error picking file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi chọn file: ${e.toString()}')),
+      );
     }
   }
 
@@ -279,63 +358,145 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
     setState(() => _isPickingImage = true);
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(source: ImageSource.gallery);
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920, // Giới hạn kích thước ảnh
+        maxHeight: 1080,
+        imageQuality: 85, // Chất lượng ảnh
+      );
+
       if (picked != null) {
+        // Kiểm tra file có tồn tại không
+        final file = File(picked.path);
+        if (!await file.exists()) {
+          throw Exception('File không tồn tại');
+        }
+
+        // Kiểm tra kích thước file (giới hạn 10MB)
+        final fileSize = await file.length();
+        if (fileSize > 10 * 1024 * 1024) {
+          throw Exception('Kích thước file quá lớn (tối đa 10MB)');
+        }
+
         setState(() {
           _imagePath = picked.path;
         });
       }
     } on PlatformException catch (e) {
       print('Image picker error: $e');
-      // Optionally show a SnackBar or dialog here
+      String errorMessage = 'Lỗi khi chọn ảnh';
+
+      if (e.code == 'photo_access_denied') {
+        errorMessage = 'Không có quyền truy cập thư viện ảnh';
+      } else if (e.code == 'camera_access_denied') {
+        errorMessage = 'Không có quyền truy cập camera';
+      } else if (e.code == 'invalid_image') {
+        errorMessage = 'File không phải là ảnh hợp lệ';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      print('Unexpected error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi không xác định: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
-      setState(() => _isPickingImage = false);
+      if (mounted) {
+        setState(() => _isPickingImage = false);
+      }
     }
   }
 
   void _showFullImage(BuildContext context) {
     if (_imagePath == null) return;
 
-    // Kiểm tra nếu là URL
-    if (_imagePath!.startsWith('http')) {
-      showDialog(
-        context: context,
-        builder: (_) => Dialog(
-          backgroundColor: Colors.transparent,
-          child: GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: InteractiveViewer(
-              child: Image.network(
-                _imagePath!,
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Text('Không thể tải ảnh'),
-                  );
-                },
+    try {
+      // Kiểm tra nếu là URL
+      if (_imagePath!.startsWith('http')) {
+        showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            backgroundColor: Colors.transparent,
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: InteractiveViewer(
+                child: Image.network(
+                  _imagePath!,
+                  errorBuilder: (context, error, stackTrace) {
+                    print('Error loading network image: $error');
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.error_outline,
+                              color: Colors.red, size: 48),
+                          SizedBox(height: 8),
+                          Text(
+                            'Không thể tải ảnh',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
-        ),
-      );
-    } else {
-      // Nếu là file local
-      showDialog(
-        context: context,
-        builder: (_) => Dialog(
-          backgroundColor: Colors.transparent,
-          child: GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: InteractiveViewer(
-              child: Image.file(
-                File(_imagePath!),
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Text('Không thể tải ảnh'),
-                  );
-                },
+        );
+      } else {
+        // Nếu là file local
+        final file = File(_imagePath!);
+        if (!file.existsSync()) {
+          throw Exception('File không tồn tại');
+        }
+
+        showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            backgroundColor: Colors.transparent,
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: InteractiveViewer(
+                child: Image.file(
+                  file,
+                  errorBuilder: (context, error, stackTrace) {
+                    print('Error loading local image: $error');
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.error_outline,
+                              color: Colors.red, size: 48),
+                          SizedBox(height: 8),
+                          Text(
+                            'Không thể tải ảnh',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
+        );
+      }
+    } catch (e) {
+      print('Error showing image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi hiển thị ảnh: ${e.toString()}'),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -411,87 +572,119 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
     required Map<String, String> plkh,
     required String imageUrl,
   }) async {
-    // Kiểm tra xem document đã tồn tại chưa
-    final docRef = FirebaseFirestore.instance.collection('animalDB').doc(name);
-    final docSnapshot = await docRef.get();
+    try {
+      // Kiểm tra xem document đã tồn tại chưa
+      final docRef =
+          FirebaseFirestore.instance.collection('animalDB').doc(name);
+      final docSnapshot = await docRef.get();
 
-    if (docSnapshot.exists) {
-      // Nếu document đã tồn tại, hiển thị dialog xác nhận
-      bool? shouldUpdate = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Cảnh báo'),
-            content: Text(
-                'Động vật "$name" đã tồn tại trong hệ thống. Bạn có muốn cập nhật thông tin không?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Hủy'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Xác nhận', style: TextStyle(color: Colors.orange)),
-              ),
-            ],
+      // Lấy tất cả documents để tìm AnimalID nhỏ nhất chưa được sử dụng
+      QuerySnapshot allDocs =
+          await FirebaseFirestore.instance.collection('animalDB').get();
+      Set<int> usedIds = {};
+
+      // Thu thập tất cả AnimalID đã được sử dụng
+      for (var doc in allDocs.docs) {
+        if (doc.data() is Map<String, dynamic>) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          if (data.containsKey('AnimalID') && data['AnimalID'] is int) {
+            usedIds.add(data['AnimalID'] as int);
+          }
+        }
+      }
+
+      // Tìm số nhỏ nhất chưa được sử dụng
+      int newAnimalId = 1;
+      while (usedIds.contains(newAnimalId)) {
+        newAnimalId++;
+      }
+
+      // Lấy habitat_id từ tên môi trường sống đã chọn
+      int habitatId = 0;
+      if (_selectedHabitatIndex >= 0 &&
+          _selectedHabitatIndex < _habitats.length) {
+        String habitatName = _habitats[_selectedHabitatIndex]['name'];
+        habitatId = await getHabitatId(habitatName);
+      }
+
+      // Lấy giá trị food và life_period
+      String food = '';
+      if (_selectedFoodIndex >= 0 && _selectedFoodIndex < _foods.length) {
+        food = _foods[_selectedFoodIndex]['value'];
+      }
+
+      String lifePeriod = '';
+      if (_selectedPeriodIndex >= 0 && _selectedPeriodIndex < _periods.length) {
+        lifePeriod = _periods[_selectedPeriodIndex]['value'];
+      }
+
+      // Xử lý upload file 3D nếu có
+      String model3dUrl = '';
+      if (_glbFilePath != null && _glbFilePath!.isNotEmpty) {
+        try {
+          print('Starting GLB file upload...'); // Debug log
+          final file = File(_glbFilePath!);
+          if (!await file.exists()) {
+            throw Exception(
+                'GLB file không tồn tại tại đường dẫn: $_glbFilePath');
+          }
+
+          final fileName =
+              '${DateTime.now().millisecondsSinceEpoch}_${path.basename(_glbFilePath!)}';
+          print('Uploading GLB file: $fileName'); // Debug log
+
+          final ref =
+              FirebaseStorage.instance.ref().child('model_3d/$fileName');
+
+          // Tạo metadata cho file với đầy đủ thông tin
+          final metadata = SettableMetadata(
+            contentType: 'model/gltf-binary',
+            customMetadata: {
+              'uploadedBy': 'admin',
+              'uploadTime': DateTime.now().toIso8601String(),
+            },
+            cacheControl: 'public,max-age=31536000', // Cache for 1 year
           );
-        },
-      );
 
-      // Nếu người dùng chọn hủy, thoát khỏi hàm
-      if (shouldUpdate != true) {
-        return;
+          // Upload file với metadata
+          final uploadTask = await ref.putFile(file, metadata);
+          model3dUrl = await uploadTask.ref.getDownloadURL();
+          print(
+              'GLB file uploaded successfully. URL: $model3dUrl'); // Debug log
+        } catch (e) {
+          print('Error uploading GLB file: $e');
+          // Không throw exception ở đây, để tiếp tục lưu thông tin khác
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Lỗi khi upload file 3D: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
-    }
 
-    // Lấy giá trị habitat_id từ môi trường được chọn
-    int habitatId = 0;
-    if (_selectedHabitatIndex != -1) {
-      final habitatName = _habitats[_selectedHabitatIndex]['name'];
-      print('Selected habitat name: $habitatName'); // Debug log
-      habitatId = await getHabitatId(habitatName);
-      print('Final habitat_id: $habitatId'); // Debug log
-    }
+      // Tạo hoặc cập nhật document với AnimalID mới
+      await docRef.set({
+        'AnimalID': newAnimalId,
+        'nameAnimal': name,
+        'nameAnimalEnglish': nameEn,
+        'plkh': plkh,
+        'imageUrl': imageUrl,
+        'required_vip': _isPremium,
+        'habitat_id': habitatId,
+        'food': food,
+        'life_period': lifePeriod,
+        'infoAnimal': _descriptionController.text,
+        '3Dimage': model3dUrl,
+        'favorcount': 0, // Thêm trường favorcount với giá trị mặc định là 0
+      });
 
-    // Lấy giá trị thức ăn từ lựa chọn
-    String food = '';
-    if (_selectedFoodIndex != -1) {
-      food = _foods[_selectedFoodIndex]['value'];
+      print(
+          'Document saved successfully with AnimalID: $newAnimalId'); // Debug log
+    } catch (e) {
+      print('Error in saveAnimalToFirestore: $e');
+      rethrow;
     }
-
-    // Lấy giá trị thời kỳ sống từ lựa chọn
-    String lifePeriod = '';
-    if (_selectedPeriodIndex != -1) {
-      lifePeriod = _periods[_selectedPeriodIndex]['value'];
-    }
-
-    // Xử lý upload file 3D nếu có
-    String model3dUrl = '';
-    if (_glbFilePath != null && _glbFilePath!.isNotEmpty) {
-      try {
-        final fileName = _glbFilePath!.split('/').last;
-        final ref = FirebaseStorage.instance.ref().child('model_3d/$fileName');
-        final uploadTask = await ref.putFile(File(_glbFilePath!));
-        model3dUrl = await uploadTask.ref.getDownloadURL();
-      } catch (e) {
-        print('Error uploading 3D file: $e');
-      }
-    }
-
-    // Tạo hoặc cập nhật document
-    await docRef.set({
-      'nameAnimal': name,
-      'nameAnimalEnglish': nameEn,
-      'plkh': plkh,
-      'imageUrl': imageUrl,
-      'required_vip': _isPremium,
-      'habitat_id': habitatId,
-      'food': food,
-      'life_period': lifePeriod,
-      'infoAnimal': _descriptionController.text,
-      '3Dimage': model3dUrl,
-    });
   }
 
   @override

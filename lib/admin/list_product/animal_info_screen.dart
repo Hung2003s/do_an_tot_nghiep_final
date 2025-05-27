@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import '../manage_animal/add_animal_item.dart';
+import '../manage_animal/add_animal_screen.dart';
 // Import widget CircularCategoryChip
 
 // Import Bottom Navigation Bar components nếu cần
@@ -79,7 +80,13 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              // TODO: Xử lý khi bấm nút "SỬA" (ví dụ: điều hướng đến màn hình chỉnh sửa)
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AddAnimalScreen(
+                      animalData: getAnimalData(widget.arguments)),
+                ),
+              );
             },
             child: const Text(
               'SỬA',
@@ -504,5 +511,15 @@ class _AnimalInfoScreenState extends State<AnimalInfoScreen> {
         ],
       ),
     );
+  }
+
+  // Hàm chuyển đổi arguments sang Map<String, dynamic>
+  Map<String, dynamic> getAnimalData(dynamic arguments) {
+    if (arguments is Map<String, dynamic>) return arguments;
+    if (arguments is DocumentSnapshot)
+      return arguments.data() as Map<String, dynamic>;
+    if (arguments is QueryDocumentSnapshot)
+      return arguments.data() as Map<String, dynamic>;
+    return {};
   }
 }

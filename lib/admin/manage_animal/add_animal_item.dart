@@ -25,12 +25,16 @@ class CircleCategory extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
               shape: BoxShape.circle, // Hình tròn
-              color: isSelected ? Colors.orange[100] : Colors.grey[200], // Màu nền thay đổi khi được chọn
+              color: isSelected
+                  ? Colors.orange[100]
+                  : Colors.grey[200], // Màu nền thay đổi khi được chọn
             ),
             child: Icon(
               icon,
               size: 24,
-              color: isSelected ? Colors.orange : Colors.grey[700], // Màu icon thay đổi khi được chọn
+              color: isSelected
+                  ? Colors.orange
+                  : Colors.grey[700], // Màu icon thay đổi khi được chọn
             ),
           ),
           const SizedBox(height: 4.0),
@@ -38,7 +42,9 @@ class CircleCategory extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12.0,
-              color: isSelected ? Colors.orange : Colors.grey[700], // Màu chữ thay đổi khi được chọn
+              color: isSelected
+                  ? Colors.orange
+                  : Colors.grey[700], // Màu chữ thay đổi khi được chọn
             ),
           ),
         ],
