@@ -53,119 +53,139 @@ class _HomeNatureState extends State<HomeNature> {
   Widget _buildDrawer() {
     return Drawer(
       backgroundColor: Colors.transparent,
-      width: MediaQuery.of(context).size.width * 0.6,
+      width: MediaQuery.of(context).size.width * 0.75,
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/17545.jpg'),
             fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.3),
+              BlendMode.darken,
+            ),
           ),
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(50),
-            bottomLeft: Radius.circular(50),
+            topRight: Radius.circular(50),
+            bottomRight: Radius.circular(50),
           ),
         ),
-        child: ListView(
-          children: <Widget>[
-            // List of items in drawer
-            ListTile(
-              leading: const Icon(
-                Icons.login,
-                size: 30,
-                color: OneColors.black,
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.only(top: 50, bottom: 20),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Colors.grey[400],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Chào mừng',
+                    style: GoogleFonts.aBeeZee(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              title: Text(
-                'Đăng nhập',
-                style: GoogleFonts.aBeeZee(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              onTap: () {
-                Get.to(() => const LoginScreen(),
-                    curve: Curves.linear, transition: Transition.rightToLeft);
-              },
             ),
-            ListTile(
-              leading: const Icon(
-                Icons.home,
-                size: 30,
-                color: OneColors.black,
-              ),
-              title: Text(
-                'Trang chủ',
-                style: GoogleFonts.aBeeZee(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(50),
+                  ),
+                ),
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: <Widget>[
+                    _buildDrawerItem(
+                      icon: Icons.login,
+                      title: 'Đăng nhập',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Get.to(() => const LoginScreen(),
+                            curve: Curves.easeInOut,
+                            transition: Transition.rightToLeft);
+                      },
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.home,
+                      title: 'Trang chủ',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Get.to(() => const HomeNature(),
+                            curve: Curves.easeInOut,
+                            transition: Transition.rightToLeft);
+                      },
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.pets,
+                      title: 'Động vật',
+                      onTap: () {
+                        Navigator.pop(context);
+                        // Add navigation to animals screen
+                      },
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.quiz,
+                      title: 'Kiểm tra kiến thức',
+                      onTap: () {
+                        Navigator.pop(context);
+                        // Add navigation to quiz screen
+                      },
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.settings,
+                      title: 'Cài đặt',
+                      onTap: () {
+                        Navigator.pop(context);
+                        // Add navigation to settings screen
+                      },
+                    ),
+                  ],
                 ),
               ),
-              onTap: () {
-                Get.to(() => const HomeNature(),
-                    curve: Curves.linear, transition: Transition.rightToLeft);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.ad_units_outlined,
-                size: 30,
-                color: OneColors.black,
-              ),
-              title: Text(
-                'Quét ảnh',
-                style: GoogleFonts.aBeeZee(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              onTap: () {
-                Get.to(() => const TrackingImange(),
-                    curve: Curves.linear, transition: Transition.rightToLeft);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.join_right,
-                size: 30,
-                color: OneColors.black,
-              ),
-              title: Text(
-                'Lịch sử',
-                style: GoogleFonts.aBeeZee(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              onTap: () {
-                Get.to(() => const ScreenKnown(),
-                    curve: Curves.linear, transition: Transition.rightToLeft);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.favorite,
-                size: 30,
-                color: OneColors.black,
-              ),
-              title: Text(
-                'Yeu Thich',
-                style: GoogleFonts.aBeeZee(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              onTap: () {
-                Get.to(() => const FavoriteModelScreen(),
-                    curve: Curves.linear, transition: Transition.rightToLeft);
-              },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        size: 30,
+        color: Color(0xff601b7c),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.aBeeZee(
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+          color: Colors.black87,
+        ),
+      ),
+      onTap: onTap,
+      hoverColor: Color(0xff601b7c).withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
     );
   }
 

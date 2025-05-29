@@ -1,8 +1,6 @@
 import 'package:animal_2/user/splash/splash_animal.dart';
 import 'package:animal_2/user/ui/regist_screen/sign_up_screen.dart';
 import 'package:animal_2/user/ui/ui_home_main.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../admin/home_dashboard/dashboard_homepage.dart';
@@ -18,21 +16,13 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscureText = true;
-
   final _formKey = GlobalKey<FormState>();
-
-  // Controllers để lấy giá trị từ các trường nhập liệu
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  // Biến để lưu trữ thông báo lỗi (nếu có)
   String? _errorMessage;
-
-  // Biến để theo dõi trạng thái loading khi đang xử lý đăng nhập
   bool _isLoading = false;
 
   Future<void> _login() async {
-    // Reset lỗi và bắt đầu trạng thái loading
     if (!mounted) return;
     setState(() {
       _errorMessage = null;
@@ -40,80 +30,20 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Gọi phương thức signInWithEmailAndPassword của Firebase Authentication
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            // Lấy email và loại bỏ khoảng trắng thừa
-            password: _passwordController.text, // Lấy mật khẩu
-          );
+      // TODO: Implement your own authentication logic here
+      await Future.delayed(
+          const Duration(seconds: 1)); // Simulate network delay
 
-      // Nếu đăng nhập thành công, userCredential.user sẽ chứa thông tin người dùng
-      print('Đăng nhập thành công: ${userCredential.user!.uid}');
-
-      // TODO: Điều hướng đến trang chính của ứng dụng sau khi đăng nhập thành công
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => SplashScreen()), // Thay HomePage bằng trang chính của bạn
+        MaterialPageRoute(builder: (context) => AdminDashboard()),
       );
-
-      //TODO (Tùy chọn): Lấy dữ liệu người dùng từ Firestore sau khi đăng nhập
-      // String uid = userCredential.user!.uid;
-      // DocumentSnapshot userData = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      // if (userData.exists) {
-      //   Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
-      //   print('Dữ liệu người dùng từ Firestore: $data');
-      //   // Sử dụng dữ liệu này để cập nhật UI hoặc truyền sang trang khác
-      // } else {
-      //   print('Không tìm thấy dữ liệu người dùng trong Firestore.');
-      //   // Có thể tạo dữ liệu người dùng ban đầu nếu cần
-      // }
-
-
-      // TODO (Tùy chọn): Lấy dữ liệu người dùng từ Firestore sau khi đăng nhập
-      String uid = userCredential.user!.uid;
-      DocumentSnapshot userData =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (userData.exists) {
-        Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
-        print('Dữ liệu người dùng từ Firestore: $data');
-        // Sử dụng dữ liệu này để cập nhật UI hoặc truyền sang trang khác
-      } else {
-        print('Không tìm thấy dữ liệu người dùng trong Firestore.');
-        // Có thể tạo dữ liệu người dùng ban đầu nếu cần
-      }
-    } on FirebaseAuthException catch (e) {
-      // Xử lý các lỗi cụ thể từ Firebase Authentication
-      String message = 'Đã xảy ra lỗi. Vui lòng thử lại.';
-      if (e.code == 'user-not-found') {
-        message = 'Không tìm thấy người dùng với Email này.';
-      } else if (e.code == 'wrong-password') {
-        message = 'Sai mật khẩu. Vui lòng thử lại.';
-      } else if (e.code == 'invalid-email') {
-        message = 'Định dạng Email không hợp lệ.';
-      }
-      // Thêm các trường hợp lỗi khác nếu cần (ví dụ: too-many-requests)
-
-      print(
-        'Lỗi Firebase Auth: ${e.code} - ${e.message}',
-      ); // In lỗi chi tiết ra console
-
-      // Cập nhật thông báo lỗi trên UI
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = message;
-      });
     } catch (e) {
-      // Xử lý các lỗi khác không liên quan đến Firebase Auth
-      print('Lỗi chung: $e');
-      // Kiểm tra mounted trước khi gọi setState
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Đã xảy ra lỗi không mong muốn: $e';
       });
     } finally {
-      // Dù thành công hay thất bại, kết thúc trạng thái loading
-      // Kiểm tra mounted trước khi gọi setState
       if (!mounted) return;
       setState(() {
         _isLoading = false;
@@ -121,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Giải phóng controllers khi widget không còn được sử dụng
   @override
   void dispose() {
     _emailController.dispose();
@@ -153,14 +82,14 @@ class _LoginScreenState extends State<LoginScreen> {
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                //logo
                 Align(
                   alignment: Alignment.topLeft,
                   child: SizedBox(
                     height: MediaQuery.of(context).size.height * 0.16,
-                    child: Image.asset(OneImages.ar_logo),
+                    child: Image.asset(
+                      OneImages.ar_logo,
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -179,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: Color(0xff4e4e4e).withValues(alpha: 0.6),
+                            color: Color(0xff4e4e4e).withOpacity(0.6),
                             spreadRadius: 0,
                             blurRadius: 1,
                             offset: Offset(0, 4),
@@ -192,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           hintText: 'Nhập Email của bạn',
                           hintStyle: TextStyle(
-                            color: Color(0xff000000).withValues(alpha: 0.3),
+                            color: Color(0xff000000).withOpacity(0.3),
                           ),
                           prefixIcon: Icon(Icons.email_outlined),
                           contentPadding: EdgeInsets.symmetric(
@@ -205,10 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập Email';
                           }
-                          // Có thể thêm regex để kiểm tra định dạng email
-                          // if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                          //   return 'Định dạng Email không hợp lệ';
-                          // }
                           return null;
                         },
                       ),
@@ -231,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: Color(0xff4e4e4e).withValues(alpha: 0.6),
+                            color: Color(0xff4e4e4e).withOpacity(0.6),
                             spreadRadius: 0,
                             blurRadius: 1,
                             offset: Offset(0, 4),
@@ -245,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           hintText: 'Nhập mật khẩu',
                           hintStyle: TextStyle(
-                            color: Color(0xff000000).withValues(alpha: 0.3),
+                            color: Color(0xff000000).withOpacity(0.3),
                           ),
                           prefixIcon: Icon(Icons.lock),
                           contentPadding: EdgeInsets.symmetric(
@@ -271,11 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập mật khẩu';
                           }
-                          // Có thể thêm kiểm tra độ dài mật khẩu
-                          // if (value.length < 6) {
-                          //   return 'Mật khẩu phải có ít nhất 6 ký tự';
-                          // }
-                          return null; // Trả về null nếu hợp lệ
+                          return null;
                         },
                       ),
                     ),
@@ -286,34 +207,31 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Text(
-                      _errorMessage!, // Hiển thị nội dung lỗi
-                      style: TextStyle(color: Colors.red, fontSize: 14), // Màu đỏ cho lỗi
-                      textAlign: TextAlign.center, // Căn giữa thông báo lỗi
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red, fontSize: 14),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 SizedBox(height: 60),
-
-                //login button
                 _isLoading
-                ? Center(child: CircularProgressIndicator(),)
-                : ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _login(); // Gọi hàm xử lý đăng nhập
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xff601b7c),
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10), // Padding cho nút
-                      // Kích thước chữ
-                      shape: RoundedRectangleBorder( // Bo tròn góc nút
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    child: Text('Đăng Nhập', style: TextStyle(
-                        fontSize: 18, color: Color(0xffffffff)
-                    ))),
-
+                    ? Center(child: CircularProgressIndicator())
+                    : ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _login();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xff601b7c),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        child: Text('Đăng Nhập',
+                            style: TextStyle(
+                                fontSize: 18, color: Color(0xffffffff)))),
                 SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -324,7 +242,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           context,
                           MaterialPageRoute(builder: (_) => AdminDashboard()),
                         );
-                        // Get
                       },
                       child: Text('Quên mật khẩu', style: TextStyle()),
                     ),
@@ -335,7 +252,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Get.to(() => RegistrationScreen());
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => RegistrationScreen()),
+                        );
                       },
                       child: Text('Đăng ký', style: TextStyle()),
                     ),

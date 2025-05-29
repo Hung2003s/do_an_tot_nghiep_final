@@ -71,149 +71,93 @@ class _HomeMainState extends State<HomeMain> {
   }
 
   SliverToBoxAdapter _buildListAnimal(BuildContext context, int id) {
-    Random random = Random();
     return SliverToBoxAdapter(
-        child: Column(
-      children: [
-        SizedBox(
+      child: Column(
+        children: [
+          SizedBox(
             height: MediaQuery.of(context).size.height * 0.9,
             child: StreamBuilder(
-                stream: data.snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {}
-                  if (snapshot.hasData) {
-                    return SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          id == 1
-                              ? Column(
-                                  children: [
-                                    _buildNoidung('Động vật ăn cỏ'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.35,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(snapshot, "Ăn cỏ",
-                                            isFoodFilter: true)),
-                                    // const SizedBox(height: 20),
-                                    _buildNoidung('Động vật ăn thịt'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.35,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "Ăn thịt",
-                                            isFoodFilter: true)),
-                                  ],
-                                )
-                              : const SizedBox(),
-                          id == 2
-                              ? Column(
-                                  children: [
-                                    _buildNoidung('Động vật sống ở nước mặn'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "Nước mặn")),
-                                    _buildNoidung('Động vật sống ở nước ngọt'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "Nước ngọt")),
-                                    _buildNoidung('Động vật sống ở rừng rậm'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "Rừng rậm")),
-                                    _buildNoidung(
-                                        'Động vật sống ở thảo nguyên'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "Thảo nguyên")),
-                                    _buildNoidung('Động vật sống ở bầu trời'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "Bầu trời")),
-                                  ],
-                                )
-                              : const SizedBox(),
-                          id == 3
-                              ? Column(
-                                  children: [
-                                    _buildNoidung('Nông trại'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "Nông trại")),
-                                    // const SizedBox(height: 10),
-                                  ],
-                                )
-                              : const SizedBox(),
-                          id == 4
-                              ? Column(
-                                  children: [
-                                    _buildNoidung('Khủng long trên cạn'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "trencan",
-                                            isPrehistoric: true)),
-                                    // const SizedBox(height: 10),
-                                    _buildNoidung('Khủng long dưới nước'),
-                                    SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        child: _buildListView(
-                                            snapshot, "duoinuoc",
-                                            isPrehistoric: true)),
-                                  ],
-                                )
-                              : const SizedBox(),
+              stream: data.snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasData) {
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        if (id == 1) ...[
+                          _buildSection(
+                            'Động vật ăn cỏ',
+                            snapshot,
+                            "Ăn cỏ",
+                            isFoodFilter: true,
+                          ),
+                          _buildSection(
+                            'Động vật ăn thịt',
+                            snapshot,
+                            "Ăn thịt",
+                            isFoodFilter: true,
+                          ),
+                        ] else if (id == 2) ...[
+                          _buildSection(
+                            'Động vật sống ở nước mặn',
+                            snapshot,
+                            "Nước mặn",
+                          ),
+                          _buildSection(
+                            'Động vật sống ở nước ngọt',
+                            snapshot,
+                            "Nước ngọt",
+                          ),
+                          _buildSection(
+                            'Động vật sống ở rừng rậm',
+                            snapshot,
+                            "Rừng rậm",
+                          ),
+                          _buildSection(
+                            'Động vật sống ở thảo nguyên',
+                            snapshot,
+                            "Thảo nguyên",
+                          ),
+                          _buildSection(
+                            'Động vật sống ở bầu trời',
+                            snapshot,
+                            "Bầu trời",
+                          ),
+                        ] else if (id == 3) ...[
+                          _buildSection(
+                            'Nông trại',
+                            snapshot,
+                            "Nông trại",
+                          ),
                         ],
-                      ),
-                    );
-                  }
-                  return Container();
-                })),
+                      ],
+                    ),
+                  );
+                }
+                return Center(child: Text('Không có dữ liệu'));
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(String title,
+      AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String filter,
+      {bool isFoodFilter = false}) {
+    return Column(
+      children: [
+        _buildNoidung(title),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.35,
+          width: MediaQuery.of(context).size.width,
+          child: _buildListView(snapshot, filter, isFoodFilter: isFoodFilter),
+        ),
       ],
-    ));
+    );
   }
 
   ListView _buildListView(
@@ -391,18 +335,28 @@ class _HomeMainState extends State<HomeMain> {
 
   Container _buildNoidung(String title) {
     return Container(
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       decoration: BoxDecoration(
         color: const Color(0xff95BDFF),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: OneColors.textWhite, width: 1),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.only(top: 6, bottom: 6, left: 10, right: 10),
-        child: Text(title,
-            style: GoogleFonts.aBeeZee(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: OneColors.textWhite)),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        child: Text(
+          title,
+          style: GoogleFonts.aBeeZee(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: OneColors.textWhite,
+          ),
+        ),
       ),
     );
   }
@@ -412,36 +366,64 @@ class _HomeMainState extends State<HomeMain> {
       pinned: true,
       floating: false,
       delegate: SliverAppBarDelegate(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 20.0, left: 10, right: 10),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(width: 0.5, color: OneColors.grey),
-                  ),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.black,
-                      size: 20,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 5,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(
+                top: 20.0, left: 10, right: 10, bottom: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 5,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.black,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                flex: 6,
-                child: SizedBox(), // SizedBox(
-              )
-            ],
+                Expanded(
+                  flex: 6,
+                  child: Center(
+                    child: Text(
+                      'Khám phá động vật',
+                      style: GoogleFonts.aBeeZee(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         minHeight: MediaQuery.of(context).padding.top + 70,
