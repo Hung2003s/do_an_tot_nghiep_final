@@ -58,7 +58,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           }
 
           // Lấy danh sách người dùng và hiển thị
-          final users = snapshot.data!;
+          final users =
+              snapshot.data!.where((user) => user.roleId == 2).toList();
           return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             itemCount: users.length,

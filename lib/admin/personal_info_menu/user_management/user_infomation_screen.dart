@@ -20,8 +20,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   // Controllers cho Text Input Fields
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _parentNumberController = TextEditingController();
-  final TextEditingController _parentEmailController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _avatarController = TextEditingController();
 
@@ -38,8 +38,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     if (widget.user != null) {
       _firstNameController.text = widget.user!.firstName;
       _lastNameController.text = widget.user!.lastName;
-      _parentNumberController.text = widget.user!.parentNumber;
-      _parentEmailController.text = widget.user!.parentEmail;
+      _phoneNumberController.text = widget.user!.phoneNumber;
+      _emailController.text = widget.user!.email;
       if (widget.user!.dateOfBirth != null) {
         _dobController.text =
             DateFormat('dd/MM/yyyy').format(widget.user!.dateOfBirth!);
@@ -58,8 +58,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     // Giải phóng controllers
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _parentNumberController.dispose();
-    _parentEmailController.dispose();
+    _phoneNumberController.dispose();
+    _emailController.dispose();
     _dobController.dispose();
     _avatarController.dispose();
     super.dispose();
@@ -127,23 +127,16 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             ),
             const SizedBox(height: 16.0),
             _buildTextInputField(
-              controller: _parentNumberController,
-              label: 'Số điện thoại phụ huynh',
+              controller: _phoneNumberController,
+              label: 'Số điện thoại',
               hintText: '0123 456 789',
               enabled: _isEditing,
             ),
             const SizedBox(height: 16.0),
             _buildTextInputField(
-              controller: _parentEmailController,
-              label: 'Email phụ huynh',
+              controller: _emailController,
+              label: 'Email',
               hintText: 'email@example.com',
-              enabled: _isEditing,
-            ),
-            const SizedBox(height: 16.0),
-            _buildTextInputField(
-              controller: _avatarController,
-              label: 'Link ảnh đại diện',
-              hintText: 'https://...',
               enabled: _isEditing,
             ),
             const SizedBox(height: 16.0),

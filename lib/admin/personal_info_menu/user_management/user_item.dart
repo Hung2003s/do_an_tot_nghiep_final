@@ -44,14 +44,14 @@ class UserListItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 2.0),
                 Text(
-                  'SĐT: ' + user.parentNumber,
+                  'SĐT: ' + user.phoneNumber,
                   style: TextStyle(
                     color: Colors.grey[700],
                     fontSize: 14.0,
                   ),
                 ),
                 Text(
-                  'Email: ' + user.parentEmail,
+                  'Email: ' + user.email,
                   style: TextStyle(
                     color: Colors.grey[700],
                     fontSize: 14.0,

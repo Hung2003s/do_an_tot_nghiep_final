@@ -1,9 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:io' as io;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:native_ar_viewer/native_ar_viewer.dart';
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
 //import '../const/cache/ar_cache_image.dart';
@@ -222,7 +225,7 @@ class _TrackingImangeState extends State<TrackingImange> {
             return IntrinsicHeight(
               child: InkWell(
                 onTap: () {
-                  //launch(_trackingImageList[index]['url']);
+
                   Get.to(
                     () => Image3D(urls: _trackingImageList[index]['url']),
                     curve: Curves.linear,

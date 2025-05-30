@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class EditEvolutionScreen extends StatefulWidget {
   final String newsId;
@@ -30,13 +33,15 @@ class _EditEvolutionScreenState extends State<EditEvolutionScreen> {
   List<Map<String, dynamic>> _animalsList = [];
   int? _selectedAnimalId;
   String? _selectedAnimalName;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  bool _isPickingImage = false;
 
   @override
   void initState() {
     super.initState();
     _newsController = TextEditingController(text: widget.newsData['news']);
-    _imageUrlController =
-        TextEditingController(text: widget.newsData['imageUrl']);
+    _imageUrlController = TextEditingController(text: widget.newsData['image']);
     _newsIdController = TextEditingController(
         text: widget.newsData['news_id']?.toString() ?? '');
     _animalIdController = TextEditingController(
@@ -104,7 +109,7 @@ class _EditEvolutionScreenState extends State<EditEvolutionScreen> {
             .doc(widget.newsId)
             .update({
           'news': _newsController.text,
-          'imageUrl': _imageUrlController.text,
+          'image': _imageUrlController.text,
           'news_id': int.tryParse(_newsIdController.text) ?? 0,
           'animal_id':
               int.tryParse(_animalIdController.text) ?? _selectedAnimalId ?? 0,
@@ -137,6 +142,143 @@ class _EditEvolutionScreenState extends State<EditEvolutionScreen> {
           });
         }
       }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    if (_isPickingImage) return;
+    setState(() => _isPickingImage = true);
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _isLoading = true;
+        });
+
+        // Upload image to Firebase Storage
+        final fileName =
+            '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+        final ref =
+            FirebaseStorage.instance.ref().child('evolution_images/$fileName');
+
+        // Create metadata for the image
+        final metadata = SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {
+            'uploadedBy': 'admin',
+            'uploadTime': DateTime.now().toIso8601String(),
+          },
+          cacheControl: 'public,max-age=31536000', // Cache for 1 year
+        );
+
+        // Upload the file with metadata
+        final uploadTask = await ref.putFile(_imageFile!, metadata);
+        final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+        // Update the image URL in the controller
+        setState(() {
+          _imageUrlController.text = downloadUrl;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ảnh đã được tải lên thành công'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error picking/uploading image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi tải ảnh lên: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showFullImage(BuildContext context) {
+    if (_imageFile != null) {
+      showDialog(
+        context: context,
+        builder: (_) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: InteractiveViewer(
+              child: Image.file(
+                _imageFile!,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading image: $error');
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        SizedBox(height: 8),
+                        Text(
+                          'Không thể tải ảnh',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (_imageUrlController.text.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (_) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: InteractiveViewer(
+              child: Image.network(
+                _imageUrlController.text,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading network image: $error');
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        SizedBox(height: 8),
+                        Text(
+                          'Không thể tải ảnh',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
     }
   }
 
@@ -257,19 +399,66 @@ class _EditEvolutionScreenState extends State<EditEvolutionScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'URL hình ảnh',
-                  border: OutlineInputBorder(),
-                ),
-                readOnly: !_isEditing,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập URL hình ảnh';
-                  }
-                  return null;
-                },
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Hình ảnh',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => _showFullImage(context),
+                        child: Container(
+                          width: 200,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12.0),
+                            image: _imageFile != null
+                                ? DecorationImage(
+                                    image: FileImage(_imageFile!),
+                                    fit: BoxFit.contain,
+                                  )
+                                : (_imageUrlController.text.isNotEmpty
+                                    ? DecorationImage(
+                                        image: NetworkImage(
+                                            _imageUrlController.text),
+                                        fit: BoxFit.contain,
+                                        onError: (exception, stackTrace) {
+                                          print(
+                                              'Error loading image: $exception');
+                                        },
+                                      )
+                                    : null),
+                          ),
+                          child: (_imageFile == null &&
+                                  _imageUrlController.text.isEmpty)
+                              ? Icon(Icons.image,
+                                  size: 40, color: Colors.grey[600])
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      if (_isEditing)
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _pickImage,
+                            icon: const Icon(Icons.cloud_upload),
+                            label: const Text('Chọn ảnh'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ),
               if (_isEditing) ...[
                 const SizedBox(height: 24),
@@ -288,7 +477,7 @@ class _EditEvolutionScreenState extends State<EditEvolutionScreen> {
                     setState(() {
                       _isEditing = false;
                       _newsController.text = widget.newsData['news'];
-                      _imageUrlController.text = widget.newsData['imageUrl'];
+                      _imageUrlController.text = widget.newsData['image'];
                       _newsIdController.text =
                           widget.newsData['news_id']?.toString() ?? '';
                       _animalIdController.text =

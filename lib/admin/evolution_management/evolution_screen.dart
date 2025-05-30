@@ -151,11 +151,26 @@ class _EvolutionScreenAdminState extends State<EvolutionScreenAdmin> {
                               borderRadius: BorderRadius.circular(20)),
                           child: Column(
                             children: [
-                              Text(
-                                newsData["name"],
-                                textAlign: TextAlign.justify,
-                                style: GoogleFonts.aBeeZee(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              FutureBuilder<String>(
+                                future: getAnimalName(newsData['animal_id']),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    );
+                                  }
+                                  return Text(
+                                    snapshot.data ?? '',
+                                    textAlign: TextAlign.justify,
+                                    style: GoogleFonts.aBeeZee(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  );
+                                },
                               ),
                               const SizedBox(height: 20),
                               SizedBox(
@@ -195,5 +210,23 @@ class _EvolutionScreenAdminState extends State<EvolutionScreenAdmin> {
         child: const Icon(Icons.add, size: 32),
       ),
     );
+  }
+
+  Future<String> getAnimalName(dynamic animalId) async {
+    int id;
+    if (animalId is int) {
+      id = animalId;
+    } else {
+      id = int.tryParse(animalId.toString()) ?? -1;
+    }
+    final doc = await FirebaseFirestore.instance
+        .collection('animalDB')
+        .where('AnimalID', isEqualTo: id)
+        .limit(1)
+        .get();
+    if (doc.docs.isNotEmpty) {
+      return doc.docs.first['nameAnimal'] ?? '';
+    }
+    return '';
   }
 }

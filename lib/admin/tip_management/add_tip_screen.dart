@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class AddTipScreen extends StatefulWidget {
   const AddTipScreen({Key? key}) : super(key: key);
@@ -23,6 +26,9 @@ class _AddTipScreenState extends State<AddTipScreen> {
   List<Map<String, dynamic>> _animalsList = [];
   int? _selectedAnimalId;
   String? _selectedAnimalName;
+  File? _imageFile; // File ảnh được chọn
+  final ImagePicker _picker = ImagePicker(); // Image picker để chọn ảnh
+  bool _isPickingImage = false; // Trạng thái đang chọn ảnh
 
   @override
   void initState() {
@@ -85,16 +91,41 @@ class _AddTipScreenState extends State<AddTipScreen> {
           throw Exception('Nội dung không được để trống');
         }
 
-        if (_imageUrlController.text.trim().isEmpty) {
-          print('Lỗi: URL hình ảnh trống');
-          throw Exception('URL hình ảnh không được để trống');
+        // Kiểm tra xem đã chọn ảnh chưa
+        if (_imageFile == null && _imageUrlController.text.isEmpty) {
+          print('Lỗi: Chưa chọn ảnh');
+          throw Exception('Vui lòng chọn ảnh');
+        }
+
+        String imageUrl = _imageUrlController.text;
+
+        // Nếu có ảnh mới được chọn, upload lên Firebase Storage
+        if (_imageFile != null) {
+          final fileName =
+              '${DateTime.now().millisecondsSinceEpoch}_${_imageFile!.path.split('/').last}';
+          final ref =
+              FirebaseStorage.instance.ref().child('tip_images/$fileName');
+
+          // Tạo metadata cho file ảnh
+          final metadata = SettableMetadata(
+            contentType: 'image/jpeg',
+            customMetadata: {
+              'uploadedBy': 'admin',
+              'uploadTime': DateTime.now().toIso8601String(),
+            },
+            cacheControl: 'public,max-age=31536000', // Cache for 1 year
+          );
+
+          // Upload file với metadata
+          final uploadTask = await ref.putFile(_imageFile!, metadata);
+          imageUrl = await uploadTask.ref.getDownloadURL();
         }
 
         print('Dữ liệu tip:');
         print('Tên động vật: $_selectedAnimalName');
         print('AnimalID: $_selectedAnimalId');
         print('Nội dung: ${_contentController.text}');
-        print('URL hình ảnh: ${_imageUrlController.text}');
+        print('URL hình ảnh: $imageUrl');
 
         // Lấy số lượng document hiện tại
         QuerySnapshot snapshot =
@@ -107,9 +138,8 @@ class _AddTipScreenState extends State<AddTipScreen> {
             .collection('tipsDB')
             .doc(newTipId)
             .set({
-          //'tên động vật': _selectedAnimalName,
           'tip': _contentController.text.trim(),
-          'imageUrl': _imageUrlController.text.trim(),
+          'imageUrl': imageUrl,
           'AnimalID': _selectedAnimalId,
           'TipID': newTipId,
           'createdAt': FieldValue.serverTimestamp(),
@@ -154,6 +184,143 @@ class _AddTipScreenState extends State<AddTipScreen> {
           });
         }
       }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    if (_isPickingImage) return;
+    setState(() => _isPickingImage = true);
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _isLoading = true;
+        });
+
+        // Upload image to Firebase Storage
+        final fileName =
+            '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+        final ref =
+            FirebaseStorage.instance.ref().child('tip_images/$fileName');
+
+        // Create metadata for the image
+        final metadata = SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {
+            'uploadedBy': 'admin',
+            'uploadTime': DateTime.now().toIso8601String(),
+          },
+          cacheControl: 'public,max-age=31536000', // Cache for 1 year
+        );
+
+        // Upload the file with metadata
+        final uploadTask = await ref.putFile(_imageFile!, metadata);
+        final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+        // Update the image URL in the controller
+        setState(() {
+          _imageUrlController.text = downloadUrl;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ảnh đã được tải lên thành công'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error picking/uploading image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi tải ảnh lên: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showFullImage(BuildContext context) {
+    if (_imageFile != null) {
+      showDialog(
+        context: context,
+        builder: (_) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: InteractiveViewer(
+              child: Image.file(
+                _imageFile!,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading image: $error');
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        SizedBox(height: 8),
+                        Text(
+                          'Không thể tải ảnh',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (_imageUrlController.text.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (_) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: InteractiveViewer(
+              child: Image.network(
+                _imageUrlController.text,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading network image: $error');
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        SizedBox(height: 8),
+                        Text(
+                          'Không thể tải ảnh',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
     }
   }
 
@@ -240,19 +407,66 @@ class _AddTipScreenState extends State<AddTipScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              // Trường nhập URL hình ảnh
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'URL hình ảnh',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập URL hình ảnh';
-                  }
-                  return null;
-                },
+              // Phần chọn và hiển thị hình ảnh
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Hình ảnh',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => _showFullImage(context),
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12.0),
+                            image: _imageFile != null
+                                ? DecorationImage(
+                                    image: FileImage(_imageFile!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : (_imageUrlController.text.isNotEmpty
+                                    ? DecorationImage(
+                                        image: NetworkImage(
+                                            _imageUrlController.text),
+                                        fit: BoxFit.cover,
+                                        onError: (exception, stackTrace) {
+                                          print(
+                                              'Error loading image: $exception');
+                                        },
+                                      )
+                                    : null),
+                          ),
+                          child: (_imageFile == null &&
+                                  _imageUrlController.text.isEmpty)
+                              ? Icon(Icons.image,
+                                  size: 40, color: Colors.grey[600])
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _pickImage,
+                          icon: const Icon(Icons.cloud_upload),
+                          label: const Text('Chọn ảnh'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               // Nút thêm tip
