@@ -60,7 +60,7 @@ class _TrackingImangeState extends State<TrackingImange> {
             padding: const EdgeInsets.all(10),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha:0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(20),
               ),
               padding: const EdgeInsets.all(10),
@@ -186,7 +186,7 @@ class _TrackingImangeState extends State<TrackingImange> {
           const SizedBox(height: 20),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(15),
             ),
             padding: const EdgeInsets.all(10),
@@ -210,7 +210,7 @@ class _TrackingImangeState extends State<TrackingImange> {
         padding: const EdgeInsets.only(bottom: 10, left: 10, right: 10),
         // height: MediaQuery.of(context).size.height * 1.2,
         child: GridView.builder(
-          physics:  NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
           itemCount: _trackingImageList.length,
           shrinkWrap: true,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -239,7 +239,7 @@ class _TrackingImangeState extends State<TrackingImange> {
                     boxShadow: [
                       BoxShadow(
                         offset: const Offset(0, 1),
-                        color: OneColors.textGreyDark.withValues(alpha:0.3),
+                        color: OneColors.textGreyDark.withValues(alpha: 0.3),
                         blurRadius: 5,
                         spreadRadius: 2,
                       ),
@@ -271,7 +271,8 @@ class _TrackingImangeState extends State<TrackingImange> {
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 4, vertical: 3),
                         decoration: const BoxDecoration(
                           color: Color.fromARGB(255, 190, 190, 190),
                           borderRadius: BorderRadius.only(
@@ -282,7 +283,8 @@ class _TrackingImangeState extends State<TrackingImange> {
                           ),
                         ),
                         child: Container(
-                          padding: const EdgeInsets.only(top: 5, bottom: 0, left: 10),
+                          padding: const EdgeInsets.only(
+                              top: 5, bottom: 0, left: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

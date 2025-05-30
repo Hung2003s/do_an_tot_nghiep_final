@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:animal_2/user/ui/login_screen/login_screen.dart';
 
 import '../list_product/animal_info_screen.dart';
 import '../list_product/list_animal_screen.dart';
@@ -198,22 +200,49 @@ class _AdminHomepageState extends State<AdminHomepage> {
                       Text(
                         'Lê Minh Hùng',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
-                      Icon(Icons.arrow_drop_down, color: Colors.grey[700]),
+                      Icon(Icons.arrow_drop_down),
                     ],
                   ),
                 ],
               ),
             ],
           ),
-          // Placeholder Avatar
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: Colors.grey[300], // Màu placeholder
-            // backgroundImage: AssetImage('assets/images/avatar.png'), // Thay bằng ảnh thật
+          // Avatar + Dropdown
+          PopupMenuButton<String>(
+            icon: CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.grey[300],
+              child: Icon(Icons.person, color: Colors.white),
+            ),
+            onSelected: (value) async {
+              if (value == 'logout') {
+                await FirebaseAuth.instance.signOut();
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Đăng xuất'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

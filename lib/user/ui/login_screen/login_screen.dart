@@ -1,11 +1,15 @@
 import 'package:animal_2/user/splash/splash_animal.dart';
 import 'package:animal_2/user/ui/regist_screen/sign_up_screen.dart';
 import 'package:animal_2/user/ui/ui_home_main.dart';
+import 'package:animal_2/user/ui/ui_home_nature.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../admin/home_dashboard/dashboard_homepage.dart';
 import '../../const/ar_image.dart';
 import '../ui_home_tabs.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,25 +25,97 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   String? _errorMessage;
   bool _isLoading = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _login() async {
     if (!mounted) return;
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _errorMessage = null;
       _isLoading = true;
     });
 
     try {
-      // TODO: Implement your own authentication logic here
-      await Future.delayed(
-          const Duration(seconds: 1)); // Simulate network delay
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => AdminDashboard()),
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
+
+      if (userCredential.user != null) {
+        // Debug logs
+        print('Firebase Auth email: ${userCredential.user!.email}');
+
+        // Lấy tất cả documents để debug
+        final allUsers = await _firestore.collection('user').get();
+        print('All users in collection:');
+        for (var doc in allUsers.docs) {
+          print('Document ID: ${doc.id}');
+          print('Document data: ${doc.data()}');
+        }
+
+        // Lấy thông tin user từ Firestore - sử dụng cách khác để so sánh email
+        final userDoc = await _firestore.collection('user').get();
+
+        final matchingDocs = userDoc.docs
+            .where((doc) =>
+                doc.data()['Email']?.toString().toLowerCase() ==
+                userCredential.user!.email?.toLowerCase())
+            .toList();
+
+        if (matchingDocs.isEmpty) {
+          setState(() {
+            _errorMessage = 'Không tìm thấy thông tin người dùng';
+          });
+          return;
+        }
+
+        final userData = matchingDocs.first.data();
+        final roleId = userData['role_id'] as int?;
+        final email = userData['Email'];
+
+        if (roleId == 1) {
+          // Admin
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminDashboard()),
+          );
+        } else if (roleId == 2) {
+          // User
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeTabs()),
+          );
+        } else {
+          setState(() {
+            _errorMessage = 'Vai trò người dùng không hợp lệ';
+          });
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+          message = 'Không tìm thấy tài khoản với email này.';
+          break;
+        case 'wrong-password':
+          message = 'Mật khẩu không đúng.';
+          break;
+        case 'invalid-email':
+          message = 'Email không hợp lệ.';
+          break;
+        case 'user-disabled':
+          message = 'Tài khoản này đã bị vô hiệu hóa.';
+          break;
+        default:
+          message = 'Đã xảy ra lỗi: ${e.message}';
+      }
+      setState(() {
+        _errorMessage = message;
+      });
     } catch (e) {
-      if (!mounted) return;
       setState(() {
         _errorMessage = 'Đã xảy ra lỗi không mong muốn: $e';
       });
@@ -134,6 +210,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập Email';
                           }
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(value)) {
+                            return 'Email không hợp lệ';
+                          }
                           return null;
                         },
                       ),
@@ -196,6 +276,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập mật khẩu';
                           }
+                          if (value.length < 6) {
+                            return 'Mật khẩu phải có ít nhất 6 ký tự';
+                          }
                           return null;
                         },
                       ),
@@ -216,11 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _isLoading
                     ? Center(child: CircularProgressIndicator())
                     : ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            _login();
-                          }
-                        },
+                        onPressed: _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xff601b7c),
                           padding: EdgeInsets.symmetric(

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
@@ -17,9 +18,11 @@ class HomeMain extends StatefulWidget {
   const HomeMain({
     super.key,
     required this.id,
+    required this.isVipUser,
   });
 
   final id;
+  final bool isVipUser;
 
   @override
   State<HomeMain> createState() => _HomeMainState();
@@ -31,12 +34,32 @@ class _HomeMainState extends State<HomeMain> {
   final CollectionReference habitatsData =
       FirebaseFirestore.instance.collection("habitats");
 
+  Map<int, String> habitatNames = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHabitatNames();
+  }
+
+  Future<void> _loadHabitatNames() async {
+    final habitatsSnapshot = await habitatsData.get();
+    for (var doc in habitatsSnapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final id = int.tryParse(doc.id.replaceAll('habitat', ''));
+      if (id != null) {
+        habitatNames[id] = data['habitat_name'] ?? '';
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
   Future<String> getHabitatName(dynamic habitatId) async {
     try {
       if (habitatId == null || habitatId == 0) {
         return '';
       }
-      String habitatIdStr = "habitat${habitatId.toString()}";
+      String habitatIdStr = "habitat" + habitatId.toString();
       DocumentSnapshot habitatDoc = await habitatsData.doc(habitatIdStr).get();
       if (habitatDoc.exists) {
         Map<String, dynamic> data = habitatDoc.data() as Map<String, dynamic>;
@@ -209,13 +232,8 @@ class _HomeMainState extends State<HomeMain> {
 
                 return InkWell(
                   onTap: () {
-                    Get.to(
-                        () => DetailAnimalScreen(
-                              arguments: records,
-                              colors: ColorRamdom.animalColor[indexRandom],
-                            ),
-                        curve: Curves.linear,
-                        transition: Transition.rightToLeft);
+                    _handleAnimalTap(
+                        context, records, indexRandom, widget.isVipUser);
                   },
                   child: Container(
                     margin: const EdgeInsets.all(8),
@@ -237,91 +255,114 @@ class _HomeMainState extends State<HomeMain> {
                             ),
                             Padding(
                                 padding: const EdgeInsets.only(top: 90),
-                                child: Container(
-                                  height: 150,
-                                  decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.only(
-                                        bottomLeft: Radius.circular(15),
-                                        bottomRight: Radius.circular(15),
-                                        topLeft: Radius.circular(15),
-                                        topRight: Radius.circular(15),
-                                      ),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                            color: Colors.grey, blurRadius: 10)
-                                      ],
-                                      border: Border.all(
-                                          color: Colors.white, width: 3),
-                                      color: Colors.white),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: SizedBox(
-                                      height: 300,
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.3,
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xff95BDFF),
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                  color: Color(0xffBAD7E9),
-                                                  spreadRadius: 1,
-                                                  blurRadius: 1,
-                                                  offset: Offset(0, 2),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      height: 150,
+                                      decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.only(
+                                            bottomLeft: Radius.circular(15),
+                                            bottomRight: Radius.circular(15),
+                                            topLeft: Radius.circular(15),
+                                            topRight: Radius.circular(15),
+                                          ),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                                color: Colors.grey,
+                                                blurRadius: 10)
+                                          ],
+                                          border: Border.all(
+                                              color: Colors.white, width: 3),
+                                          color: Colors.white),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: SizedBox(
+                                          height: 300,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.3,
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      const Color(0xff95BDFF),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  boxShadow: const [
+                                                    BoxShadow(
+                                                      color: Color(0xffBAD7E9),
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1,
+                                                      offset: Offset(0, 2),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                            child: Center(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(4),
-                                                child: Text(
-                                                  records["nameAnimal"] ?? "",
-                                                  style: GoogleFonts.aBeeZee(
-                                                    fontSize: 17,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
+                                                child: Center(
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(4),
+                                                    child: Text(
+                                                      records["nameAnimal"] ??
+                                                          "",
+                                                      style:
+                                                          GoogleFonts.aBeeZee(
+                                                        fontSize: 17,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.white,
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
                                                   ),
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
-                                            ),
+                                              const SizedBox(height: 10),
+                                              Text(
+                                                records["infoAnimal"] ?? "",
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.justify,
+                                                style: GoogleFonts.aBeeZee(
+                                                    fontSize: 9),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(height: 10),
-                                          Text(
-                                            records["infoAnimal"] ?? "",
-                                            maxLines: 3,
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.justify,
-                                            style: GoogleFonts.aBeeZee(
-                                                fontSize: 9),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                    if (records['required_vip'] == true)
+                                      Positioned(
+                                        bottom: 8,
+                                        right: 8,
+                                        child: Icon(Icons.lock,
+                                            color: Colors.orange, size: 24),
+                                      ),
+                                  ],
                                 )),
                             Align(
                                 alignment: Alignment.topCenter,
                                 child: SizedBox(
                                   height: 100,
-                                  child: CachedNetworkImage(
-                                      imageUrl: records["imageUrl"],
-                                      fit: BoxFit.cover),
+                                  child: Stack(
+                                    children: [
+                                      CachedNetworkImage(
+                                        imageUrl: records["imageUrl"],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ],
+                                  ),
                                 )),
                           ],
                         )
@@ -331,6 +372,57 @@ class _HomeMainState extends State<HomeMain> {
                 );
               });
         });
+  }
+
+  void _handleAnimalTap(BuildContext context, DocumentSnapshot records,
+      int indexRandom, bool isVipUser) async {
+    try {
+      if (records['required_vip'] == true && !isVipUser) {
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Chỉ dành cho tài khoản VIP'),
+              content: const Text(
+                  'Vui lòng nâng cấp tài khoản để truy cập động vật VIP.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Đóng'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+      if (context.mounted) {
+        Get.to(
+          () => DetailAnimalScreen(
+            arguments: records,
+            colors: ColorRamdom.animalColor[indexRandom],
+          ),
+          curve: Curves.linear,
+          transition: Transition.rightToLeft,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Lỗi'),
+            content: Text('Đã xảy ra lỗi khi kiểm tra quyền truy cập: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Đóng'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   Container _buildNoidung(String title) {

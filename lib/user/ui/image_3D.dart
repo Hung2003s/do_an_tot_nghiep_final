@@ -42,7 +42,6 @@ class _Image3DState extends State<Image3D> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: SingleChildScrollView(
         child: Container(
           child: Stack(

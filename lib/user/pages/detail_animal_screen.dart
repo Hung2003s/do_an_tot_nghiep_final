@@ -8,6 +8,8 @@ import 'package:native_ar_viewer/native_ar_viewer.dart';
 import '../const/ar_color.dart';
 import '../const/ar_image.dart';
 import '../ui/show_image_3d.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DetailAnimalScreen extends StatefulWidget {
   const DetailAnimalScreen({
@@ -25,6 +27,43 @@ class DetailAnimalScreen extends StatefulWidget {
 
 class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
   var plkh;
+  bool? _isVipUser;
+  bool _loadingVip = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkVipUser();
+  }
+
+  Future<void> _checkVipUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isVipUser = false;
+        _loadingVip = false;
+      });
+      return;
+    }
+    final userQuery = await FirebaseFirestore.instance.collection('user').get();
+    final matchingDocs = userQuery.docs
+        .where((doc) =>
+            doc.data().containsKey('Email') &&
+            doc.data()['Email']?.toString().toLowerCase() ==
+                user.email?.toLowerCase())
+        .toList();
+    if (matchingDocs.isNotEmpty) {
+      setState(() {
+        _isVipUser = matchingDocs.first.data()['vip'] == true;
+        _loadingVip = false;
+      });
+    } else {
+      setState(() {
+        _isVipUser = false;
+        _loadingVip = false;
+      });
+    }
+  }
 
   _launchAR(String model3DUrl) async {
     if (io.Platform.isAndroid) {
@@ -39,6 +78,60 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
   @override
   Widget build(BuildContext context) {
     plkh = widget.arguments["plkh"];
+    final bool requiredVip = widget.arguments['required_vip'] == true;
+    if (_loadingVip) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (requiredVip && _isVipUser == false) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.black, size: 35),
+        ),
+        extendBodyBehindAppBar: true,
+        body: Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.lock, color: Colors.orange, size: 60),
+                const SizedBox(height: 16),
+                Text(
+                  'Động vật này chỉ dành cho tài khoản VIP!',
+                  style: GoogleFonts.aBeeZee(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Vui lòng nâng cấp tài khoản để truy cập thông tin động vật VIP.',
+                  style: GoogleFonts.aBeeZee(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
