@@ -35,6 +35,8 @@ class _HomeMainState extends State<HomeMain> {
       FirebaseFirestore.instance.collection("habitats");
 
   Map<int, String> habitatNames = {};
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -42,16 +44,36 @@ class _HomeMainState extends State<HomeMain> {
     _loadHabitatNames();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadHabitatNames() async {
-    final habitatsSnapshot = await habitatsData.get();
-    for (var doc in habitatsSnapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final id = int.tryParse(doc.id.replaceAll('habitat', ''));
-      if (id != null) {
-        habitatNames[id] = data['habitat_name'] ?? '';
+    try {
+      final habitatsSnapshot = await habitatsData.get();
+      final Map<int, String> names = {};
+      for (var doc in habitatsSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final id = int.tryParse(doc.id.replaceAll('habitat', ''));
+        if (id != null) {
+          names[id] = data['habitat_name'] ?? '';
+        }
+      }
+      if (mounted) {
+        setState(() {
+          habitatNames = names;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
-    if (mounted) setState(() {});
   }
 
   Future<String> getHabitatName(dynamic habitatId) async {
@@ -183,195 +205,179 @@ class _HomeMainState extends State<HomeMain> {
     );
   }
 
-  ListView _buildListView(
-      AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String filterValue,
-      {bool isFoodFilter = false, bool isPrehistoric = false}) {
-    if (!snapshot.hasData) {
-      return ListView();
-    }
-    return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics()),
-        padding: EdgeInsets.zero,
-        shrinkWrap: true,
-        itemCount: snapshot.data?.docs.length,
-        itemBuilder: (context, index) {
-          final DocumentSnapshot records = snapshot.data!.docs[index];
-          Random random = Random();
-          var indexRandom = random.nextInt(ColorRamdom.animalColor.length);
-          dynamic habitatId = records["habitat_id"];
-          String animalFood = records["food"] ?? '';
-          String lifePeriod = records["life_period"] ?? '';
-
-          bool isPrehistoricAnimal = lifePeriod == "Tiền sử";
-          bool isLandPrehistoric =
-              isPrehistoricAnimal && (habitatId >= 1 && habitatId <= 4);
-          bool isWaterPrehistoric =
-              isPrehistoricAnimal && (habitatId == 5 || habitatId == 6);
-
-          return FutureBuilder<String>(
-              future: getHabitatName(habitatId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox();
-                }
-                if (snapshot.hasError) {
-                  return const SizedBox();
-                }
-                String habitatName = snapshot.data ?? '';
-
-                bool shouldShow = isFoodFilter
-                    ? animalFood == filterValue
-                    : isPrehistoric
-                        ? (filterValue == "trencan" && isLandPrehistoric) ||
-                            (filterValue == "duoinuoc" && isWaterPrehistoric)
-                        : habitatName == filterValue;
-
-                if (!shouldShow) return const SizedBox();
-
-                return InkWell(
-                  onTap: () {
-                    _handleAnimalTap(
-                        context, records, indexRandom, widget.isVipUser);
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.all(8),
-                    color: Colors.transparent,
-                    child: Column(
+  Widget _buildAnimalCard(DocumentSnapshot records, int indexRandom) {
+    return RepaintBoundary(
+      child: InkWell(
+        onTap: () =>
+            _handleAnimalTap(context, records, indexRandom, widget.isVipUser),
+        child: Container(
+          margin: const EdgeInsets.all(8),
+          color: Colors.transparent,
+          child: Column(
+            children: [
+              Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  Container(
+                    height: 100,
+                    width: MediaQuery.of(context).size.width * 0.36,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                      color: ColorRamdom.animalColor[indexRandom],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 90),
+                    child: Stack(
                       children: [
-                        Stack(
-                          alignment: Alignment.topCenter,
-                          children: [
-                            Container(
-                              height: 100,
-                              width: MediaQuery.of(context).size.width * 0.36,
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(30),
-                                    topRight: Radius.circular(30)),
-                                color: ColorRamdom.animalColor[indexRandom],
-                              ),
+                        Container(
+                          height: 150,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(15),
+                              bottomRight: Radius.circular(15),
+                              topLeft: Radius.circular(15),
+                              topRight: Radius.circular(15),
                             ),
-                            Padding(
-                                padding: const EdgeInsets.only(top: 90),
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      height: 150,
-                                      decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.only(
-                                            bottomLeft: Radius.circular(15),
-                                            bottomRight: Radius.circular(15),
-                                            topLeft: Radius.circular(15),
-                                            topRight: Radius.circular(15),
-                                          ),
-                                          boxShadow: const [
-                                            BoxShadow(
-                                                color: Colors.grey,
-                                                blurRadius: 10)
-                                          ],
-                                          border: Border.all(
-                                              color: Colors.white, width: 3),
-                                          color: Colors.white),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.grey, blurRadius: 10)
+                            ],
+                            border: Border.all(color: Colors.white, width: 3),
+                            color: Colors.white,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              height: 300,
+                              width: MediaQuery.of(context).size.width * 0.3,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.3,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xff95BDFF),
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0xffBAD7E9),
+                                          spreadRadius: 1,
+                                          blurRadius: 1,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
                                       child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: SizedBox(
-                                          height: 300,
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.3,
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.3,
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      const Color(0xff95BDFF),
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  boxShadow: const [
-                                                    BoxShadow(
-                                                      color: Color(0xffBAD7E9),
-                                                      spreadRadius: 1,
-                                                      blurRadius: 1,
-                                                      offset: Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Center(
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(4),
-                                                    child: Text(
-                                                      records["nameAnimal"] ??
-                                                          "",
-                                                      style:
-                                                          GoogleFonts.aBeeZee(
-                                                        fontSize: 17,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white,
-                                                      ),
-                                                      maxLines: 2,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 10),
-                                              Text(
-                                                records["infoAnimal"] ?? "",
-                                                maxLines: 3,
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: TextAlign.justify,
-                                                style: GoogleFonts.aBeeZee(
-                                                    fontSize: 9),
-                                              ),
-                                            ],
+                                        padding: const EdgeInsets.all(4),
+                                        child: Text(
+                                          records["nameAnimal"] ?? "",
+                                          style: GoogleFonts.aBeeZee(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ),
-                                    if (records['required_vip'] == true)
-                                      Positioned(
-                                        bottom: 8,
-                                        right: 8,
-                                        child: Icon(Icons.lock,
-                                            color: Colors.orange, size: 24),
-                                      ),
-                                  ],
-                                )),
-                            Align(
-                                alignment: Alignment.topCenter,
-                                child: SizedBox(
-                                  height: 100,
-                                  child: Stack(
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: records["imageUrl"],
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ],
                                   ),
-                                )),
-                          ],
-                        )
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    records["infoAnimal"] ?? "",
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.justify,
+                                    style: GoogleFonts.aBeeZee(fontSize: 9),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (records['required_vip'] == true)
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: Icon(Icons.lock,
+                                color: Colors.orange, size: 24),
+                          ),
                       ],
                     ),
                   ),
-                );
-              });
-        });
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      height: 100,
+                      child: CachedNetworkImage(
+                        imageUrl: records["imageUrl"],
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        errorWidget: (context, url, error) => const Center(
+                          child: Icon(Icons.error),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListView(
+      AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String filterValue,
+      {bool isFoodFilter = false, bool isPrehistoric = false}) {
+    if (!snapshot.hasData) {
+      return const SizedBox();
+    }
+
+    final filteredDocs = snapshot.data!.docs.where((records) {
+      dynamic habitatId = records["habitat_id"];
+      String animalFood = records["food"] ?? '';
+      String lifePeriod = records["life_period"] ?? '';
+
+      bool isPrehistoricAnimal = lifePeriod == "Tiền sử";
+      bool isLandPrehistoric =
+          isPrehistoricAnimal && (habitatId >= 1 && habitatId <= 4);
+      bool isWaterPrehistoric =
+          isPrehistoricAnimal && (habitatId == 5 || habitatId == 6);
+
+      String habitatName = habitatNames[habitatId] ?? '';
+
+      return isFoodFilter
+          ? animalFood == filterValue
+          : isPrehistoric
+              ? (filterValue == "trencan" && isLandPrehistoric) ||
+                  (filterValue == "duoinuoc" && isWaterPrehistoric)
+              : habitatName == filterValue;
+    }).toList();
+
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      physics:
+          const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      itemCount: filteredDocs.length,
+      itemBuilder: (context, index) {
+        final records = filteredDocs[index];
+        Random random = Random();
+        var indexRandom = random.nextInt(ColorRamdom.animalColor.length);
+        return _buildAnimalCard(records, indexRandom);
+      },
+    );
   }
 
   void _handleAnimalTap(BuildContext context, DocumentSnapshot records,

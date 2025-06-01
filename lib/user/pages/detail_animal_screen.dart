@@ -142,7 +142,6 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
       body: Stack(
         children: [
           _buildImageAnimal(context, widget.arguments, widget.colors),
-          _buildLikeCount(context, widget.arguments),
           _buildInfoAnimal(context, widget.arguments, plkh),
           _buildScanButton(context, widget.arguments),
         ],
@@ -466,33 +465,6 @@ class _DetailAnimalScreenState extends State<DetailAnimalScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildLikeCount(BuildContext context, var arguments) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Column(
-            children: [
-              IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.favorite, color: Colors.red, size: 32),
-              ),
-              Text(
-                arguments["favorcount"].toString(),
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
