@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../model/user.dart';
 
 // Import Bottom Navigation Bar components nếu cần
@@ -24,6 +28,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _avatarController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  File? _imageFile;
 
   // Biến trạng thái cho Giới tính
   Gender? _selectedGender; // Lưu giới tính được chọn
@@ -31,6 +37,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   // Biến trạng thái để theo dõi chế độ chỉnh sửa
   bool _isEditing = false; // Ban đầu là chế độ xem
   bool _isLoading = false;
+  bool _isPickingImage = false;
 
   @override
   void initState() {
@@ -65,11 +72,137 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     super.dispose();
   }
 
+  Future<void> _saveUserInfo() async {
+    if (widget.user == null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      String? imageUrl = _avatarController.text;
+
+      // Upload new image if selected
+      if (_imageFile != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_images')
+            .child(
+                '${widget.user!.docId}_${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+        final metadata = SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {
+            'uploadedBy': 'admin',
+            'uploadTime': DateTime.now().toIso8601String(),
+          },
+        );
+
+        final uploadTask = await storageRef.putFile(_imageFile!, metadata);
+        imageUrl = await uploadTask.ref.getDownloadURL();
+      }
+
+      // Parse date string to DateTime
+      DateTime? dob;
+      try {
+        dob = DateFormat('dd/MM/yyyy').parse(_dobController.text);
+      } catch (e) {
+        print('Error parsing date: $e');
+      }
+
+      // Update user data in Firestore
+      await FirebaseFirestore.instance
+          .collection('user')
+          .doc(widget.user!.docId)
+          .update({
+        'FirstName': _firstNameController.text,
+        'LastName': _lastNameController.text,
+        'Phone_number': _phoneNumberController.text,
+        'Email': _emailController.text,
+        'Gender': _selectedGender == Gender.male
+            ? 'Nam'
+            : _selectedGender == Gender.female
+                ? 'Nữ'
+                : '',
+        'DateOfBirth': dob != null ? Timestamp.fromDate(dob) : null,
+        'avatar': imageUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật thông tin thành công'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+          if (imageUrl != null) {
+            _avatarController.text = imageUrl;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi cập nhật thông tin: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    if (_isPickingImage) return;
+    setState(() => _isPickingImage = true);
+
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi chọn ảnh: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPickingImage = false);
+      }
+    }
+  }
+
   // Hàm xử lý khi nút Sửa/Lưu được bấm
   void _toggleEditSave() {
-    setState(() {
-      _isEditing = !_isEditing;
-    });
+    if (_isEditing) {
+      _saveUserInfo();
+    } else {
+      setState(() {
+        _isEditing = true;
+      });
+    }
   }
 
   @override
@@ -88,12 +221,27 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         title: const Text('Thông tin cá nhân'),
         centerTitle: true,
         actions: [
-          TextButton(
-            onPressed: _toggleEditSave,
-            child: Text(_isEditing ? 'LƯU' : 'SỬA',
-                style: TextStyle(
-                    color: _isEditing ? Colors.green : Colors.orange)),
-          ),
+          if (_isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ),
+            )
+          else
+            TextButton(
+              onPressed: _toggleEditSave,
+              child: Text(_isEditing ? 'LƯU' : 'SỬA',
+                  style: TextStyle(
+                      color: _isEditing ? Colors.green : Colors.orange)),
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -101,16 +249,43 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 60,
-              backgroundColor: Colors.grey[300],
-              backgroundImage: _avatarController.text.isNotEmpty
-                  ? NetworkImage(_avatarController.text)
-                  : null,
-              child: _avatarController.text.isEmpty
-                  ? const Icon(Icons.person, size: 50)
-                  : null,
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: _imageFile != null
+                      ? FileImage(_imageFile!)
+                      : (_avatarController.text.isNotEmpty
+                          ? NetworkImage(_avatarController.text)
+                              as ImageProvider
+                          : null),
+                  child: (_imageFile == null && _avatarController.text.isEmpty)
+                      ? const Icon(Icons.person, size: 50)
+                      : null,
+                ),
+                if (_isEditing)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.camera_alt, color: Colors.white),
+                        onPressed: _isPickingImage ? null : _pickImage,
+                      ),
+                    ),
+                  ),
+              ],
             ),
+            if (_isPickingImage)
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: CircularProgressIndicator(),
+              ),
             const SizedBox(height: 30.0),
             _buildTextInputField(
               controller: _firstNameController,
@@ -150,6 +325,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     label: 'Ngày sinh',
                     hintText: 'dd/mm/yyyy',
                     readOnly: true,
+                    enabled: _isEditing,
                   ),
                 ),
                 const SizedBox(width: 16.0),
@@ -206,7 +382,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             if (_isEditing)
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isLoading ? null : _saveUserInfo,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
@@ -217,11 +393,21 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     ),
                     minimumSize: const Size(double.infinity, 50),
                   ),
-                  child: const Text(
-                    'LƯU THAY ĐỔI',
-                    style:
-                        TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'LƯU THAY ĐỔI',
+                          style: TextStyle(
+                              fontSize: 18.0, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
             const SizedBox(height: 16.0),

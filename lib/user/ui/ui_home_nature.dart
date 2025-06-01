@@ -528,9 +528,6 @@ class _HomeNatureState extends State<HomeNature> {
               future: FirebaseFirestore.instance.collection('user').get(),
               builder: (context, snapshot) {
                 final user = FirebaseAuth.instance.currentUser;
-                if (!snapshot.hasData || user == null) {
-                  return const SizedBox.shrink();
-                }
                 final docs = snapshot.data!.docs;
                 final userDoc = docs
                     .cast<QueryDocumentSnapshot<Map<String, dynamic>>?>()
@@ -539,7 +536,7 @@ class _HomeNatureState extends State<HomeNature> {
                           doc != null &&
                           doc.data().containsKey('Email') &&
                           doc.data()['Email']?.toString().toLowerCase() ==
-                              user.email?.toLowerCase(),
+                              user?.email?.toLowerCase(),
                       orElse: () => null,
                     );
                 final avatarUrl =

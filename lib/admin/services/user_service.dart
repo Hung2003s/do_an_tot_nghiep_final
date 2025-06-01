@@ -34,16 +34,26 @@ class UserService {
   // Thêm người dùng mới
   Future<void> addUser(Map<String, dynamic> userData) async {
     try {
-      // Lấy số lượng document hiện tại
-      final snapshot = await _firestore.collection('user').get();
-      final nextIndex = snapshot.docs.length + 1;
-      final docId = 'user${nextIndex.toString().padLeft(2, '0')}';
+      // Lấy UID từ userData (đã được set trong add_user.dart)
+      final String uid = userData['uid'] as String;
+      if (uid.isEmpty) {
+        throw Exception('UID không được để trống');
+      }
 
-      await _firestore.collection('user').doc(docId).set({
+      // Đảm bảo role_id được set là 2
+      final dataToSave = {
         ...userData,
-        'UserID': nextIndex,
+        'UserID': uid, // Sử dụng UID làm UserID
+        'role_id': 2, // Đảm bảo role_id luôn là 2
+        'vip': false, // Thêm trường vip mặc định là false
         'createdAt': FieldValue.serverTimestamp(),
-      });
+      };
+
+      // Log để kiểm tra dữ liệu trước khi lưu
+      print('Saving user data: $dataToSave');
+
+      // Sử dụng UID làm document ID
+      await _firestore.collection('user').doc(uid).set(dataToSave);
     } catch (e) {
       print('Error adding user: $e');
       rethrow;
