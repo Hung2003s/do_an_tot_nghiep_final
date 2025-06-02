@@ -24,6 +24,7 @@ class _PersonalInfoScreen1State extends State<PersonalInfoScreen1> {
   String? _gender;
   bool _isEditing = false;
   bool _isLoading = false;
+  bool _isFirstLoad = true;
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
@@ -210,34 +211,38 @@ class _PersonalInfoScreen1State extends State<PersonalInfoScreen1> {
                       final matchingDocs = snapshot.data!.docs
                           .where((doc) =>
                               doc.data()['Email']?.toString().toLowerCase() ==
-                              user?.email?.toLowerCase())
+                              user.email?.toLowerCase())
                           .toList();
 
                       if (matchingDocs.isNotEmpty) {
                         userData = matchingDocs.first.data();
-                        _firstNameController.text = userData['FirstName'] ?? '';
-                        _lastNameController.text = userData['LastName'] ?? '';
-                        _parentNumberController.text =
-                            userData['Phone_number'] ?? '';
-                        _parentEmailController.text = userData['Email'] ?? '';
-                        var dobRaw = userData['DateOfBirth'];
-                        if (dobRaw != null) {
-                          DateTime dob;
-                          if (dobRaw is Timestamp) {
-                            dob = dobRaw.toDate();
-                          } else if (dobRaw is DateTime) {
-                            dob = dobRaw;
+                        if (_isFirstLoad) {
+                          _firstNameController.text =
+                              userData['FirstName'] ?? '';
+                          _lastNameController.text = userData['LastName'] ?? '';
+                          _parentNumberController.text =
+                              userData['Phone_number'] ?? '';
+                          _parentEmailController.text = userData['Email'] ?? '';
+                          var dobRaw = userData['DateOfBirth'];
+                          if (dobRaw != null) {
+                            DateTime dob;
+                            if (dobRaw is Timestamp) {
+                              dob = dobRaw.toDate();
+                            } else if (dobRaw is DateTime) {
+                              dob = dobRaw;
+                            } else {
+                              dob = DateTime.tryParse(dobRaw.toString()) ??
+                                  DateTime.now();
+                            }
+                            _dobController.text =
+                                DateFormat('dd/MM/yyyy').format(dob);
                           } else {
-                            dob = DateTime.tryParse(dobRaw.toString()) ??
-                                DateTime.now();
+                            _dobController.text = '';
                           }
-                          _dobController.text =
-                              DateFormat('dd/MM/yyyy').format(dob);
-                        } else {
-                          _dobController.text = '';
+                          _avatarController.text = userData['avatar'] ?? '';
+                          _gender = userData['Gender'] ?? '';
+                          _isFirstLoad = false;
                         }
-                        _avatarController.text = userData['avatar'] ?? '';
-                        _gender = userData['Gender'] ?? '';
                       }
                     }
                     final avatarUrl = _avatarController.text;
@@ -291,14 +296,14 @@ class _PersonalInfoScreen1State extends State<PersonalInfoScreen1> {
                             _buildTextInputField(
                               controller: _firstNameController,
                               label: 'Tên',
-                              hintText: 'hùng',
+                              hintText: 'VD: Hùng',
                               enabled: _isEditing,
                             ),
                             const SizedBox(height: 16.0),
                             _buildTextInputField(
                               controller: _lastNameController,
                               label: 'Họ và tên đệm',
-                              hintText: 'Lê Minh',
+                              hintText: 'VD: Lê Minh',
                               enabled: _isEditing,
                             ),
                             const SizedBox(height: 16.0),
@@ -386,12 +391,16 @@ class _PersonalInfoScreen1State extends State<PersonalInfoScreen1> {
                             ),
                             const SizedBox(height: 32),
                             ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Thêm logic nâng cấp tài khoản
-                              },
-                              icon: Icon(Icons.upgrade),
-                              label: Text('Nâng cấp tài khoản',
-                                  style: TextStyle(fontSize: 18)),
+                              onPressed: _isLoading ? null : _saveInfo,
+                              icon: _isLoading
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.white))
+                                  : Icon(Icons.save),
+                              label:
+                                  Text('Lưu', style: TextStyle(fontSize: 18)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.orange,
                                 foregroundColor: Colors.white,

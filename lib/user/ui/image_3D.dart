@@ -8,6 +8,18 @@ import '../const/ar_color.dart';
 import '../const/ar_image.dart';
 import '../const/ar_loading.dart';
 
+class MyChromeSafariBrowser extends ChromeSafariBrowser {
+  @override
+  void onOpened() {
+    print("ChromeSafari browser opened");
+  }
+
+  @override
+  void onClosed() {
+    print("ChromeSafari browser closed");
+  }
+}
+
 class Image3D extends StatefulWidget {
   const Image3D({Key? key, required this.urls}) : super(key: key);
   final String urls;
@@ -18,6 +30,7 @@ class Image3D extends StatefulWidget {
 
 class _Image3DState extends State<Image3D> {
   final GlobalKey webViewKey = GlobalKey();
+  final MyChromeSafariBrowser browser = MyChromeSafariBrowser();
 
   InAppWebViewController? webViewController;
   bool _delay = true;
@@ -26,7 +39,7 @@ class _Image3DState extends State<Image3D> {
   void initState() {
     super.initState();
     requestPermistion();
-    Timer(const Duration(seconds: 15), () {
+    Timer(const Duration(seconds: 10), () {
       setState(() {
         _delay = false;
       });
@@ -49,36 +62,53 @@ class _Image3DState extends State<Image3D> {
               SizedBox(
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
-                child: InAppWebView(
-                  key: webViewKey,
-                  initialUrlRequest: URLRequest(
-                    url: WebUri.uri(Uri.parse(widget.urls)),
-                  ),
-                  initialSettings: InAppWebViewSettings(
-                    mediaPlaybackRequiresUserGesture: false,
-                  ),
-                  onWebViewCreated: (controller) {
-                    webViewController = controller;
-                  },
-                  onPermissionRequest: (controller, request) async {
-                    final Uri? origin = request.origin;
-                    // Nhận danh sách quyền trực tiếp từ request, kiểu của nó là List<PermissionResourceType>
-                    final List<PermissionResourceType> resources =
-                        request.resources;
-        
-                    print(
-                      "[InAppWebView] Permission request: origin ${origin?.toString()}, resources (enums): $resources",
-                    );
-                    print(
-                      "[InAppWebView] Granting permissions (enums): $resources for ${origin?.toString()}",
-                    );
-        
-                    return PermissionResponse(
-                      resources: resources,
-                      action: PermissionResponseAction.GRANT,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // Mở link bằng ChromeSafariBrowser
+                    await browser.open(
+                      // URL cần mở
+                      url: WebUri(widget.urls),
+
+                      // Các tùy chỉnh cho giao diện và hành vi
+                      settings: ChromeSafariBrowserSettings(
+                        // Đổi màu thanh công cụ cho hợp với app
+                        preferredBarTintColor: Colors.blue,
+                        // Đổi màu các nút điều khiển (mũi tên, nút done,...)
+                        preferredControlTintColor: Colors.white,
+                        // Thêm nút chia sẻ mặc định
+                        // Bật chế độ vào reader mode nếu có thể (chỉ iOS)
+
+                        // Tắt thanh công cụ khi cuộn
+
+                      ),
                     );
                   },
+                  child:  Center(child: Text("Hiển thị scan")),
                 ),
+                // InAppWebView(
+                //   key: webViewKey,
+                //   initialUrlRequest: URLRequest(
+                //     url: WebUri(widget.urls),
+                //   ),
+                //   initialSettings: InAppWebViewSettings(
+                //     mediaPlaybackRequiresUserGesture: false,
+                //     useHybridComposition: true,
+                //     allowsInlineMediaPlayback: true,
+                //   ),
+                //   onWebViewCreated: (controller) {
+                //     webViewController = controller;
+                //   },
+                //   onPermissionRequest: (controller, request) async {
+                //     final Uri? origin = request.origin;
+                //     // Nhận danh sách quyền trực tiếp từ request, kiểu của nó là List<PermissionResourceType>
+                //     final List<PermissionResourceType> resources =
+                //         request.resources;
+                //     return PermissionResponse(
+                //       resources: resources,
+                //       action: PermissionResponseAction.GRANT,
+                //     );
+                //   },
+                // ),
               ),
               _delay ? _buildHuongDan() : Container(),
             ],

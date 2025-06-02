@@ -225,7 +225,6 @@ class _TrackingImangeState extends State<TrackingImange> {
             return IntrinsicHeight(
               child: InkWell(
                 onTap: () {
-
                   Get.to(
                     () => Image3D(urls: _trackingImageList[index]['url']),
                     curve: Curves.linear,
