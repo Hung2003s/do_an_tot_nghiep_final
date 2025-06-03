@@ -39,7 +39,7 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
   // Hàm lấy danh sách animalDB từ Firestore
   Future<List<Map<String, dynamic>>> getAnimalListFromFirestore() async {
     final query = await FirebaseFirestore.instance.collection('animalDB').get();
-    return query.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return query.docs.map((doc) => doc.data()).toList();
   }
 
   @override

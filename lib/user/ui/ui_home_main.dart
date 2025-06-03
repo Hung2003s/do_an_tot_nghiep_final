@@ -176,6 +176,13 @@ class _HomeMainState extends State<HomeMain> {
                             snapshot,
                             "Nông trại",
                           ),
+                        ] else if (id == 4) ...[
+                          _buildSection(
+                            'Khủng long',
+                            snapshot,
+                            "Tiền sử",
+                           // isPrehistoric: true,
+                          ),
                         ],
                       ],
                     ),
@@ -332,7 +339,7 @@ class _HomeMainState extends State<HomeMain> {
             ],
           ),
         ),
-      ),
+      )
     );
   }
 
@@ -537,13 +544,17 @@ class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     required this.maxHeight,
     required this.child,
   });
+
   final double minHeight;
   final double maxHeight;
   final Widget child;
+
   @override
   double get minExtent => minHeight;
+
   @override
   double get maxExtent => max(maxHeight, minHeight);
+
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
